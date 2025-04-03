@@ -2,7 +2,8 @@
   "name": "cauldroncli",
   "version": "0.0.1",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "pkg package.json"
   },
   "type": "commonjs",
   "bin": {
@@ -19,17 +20,23 @@
     "url": "https://github.com/jackcooperdev/CauldronCLI/issues"
   },
   "pkg": {
-    "scripts": "src/**/*.js",
+    "scripts": [
+      "src/**/*.js"
+    ],
     "outputPath": "dist"
   },
   "homepage": "https://github.com/jackcooperdev/CauldronCLI#readme",
   "description": "",
   "dependencies": {
+    "axios": "^1.8.4",
     "chalk": "^5.4.1",
+    "cli-spinners": "^3.2.0",
     "commander": "^13.1.0",
     "figlet": "^1.8.0",
     "inquirer": "^12.5.0",
+    "open": "^10.1.0",
     "ora": "^8.2.0",
+    "qs": "^6.14.0",
     "ws": "^8.18.1"
   },
   "devDependencies": {
