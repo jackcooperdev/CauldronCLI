@@ -1,0 +1,23 @@
+{
+  "name": "cauldroncli",
+  "version": "0.0.1",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jackcooperdev/CauldronCLI.git"
+  },
+  "keywords": [],
+  "author": "Jack Cooper",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jackcooperdev/CauldronCLI/issues"
+  },
+  "homepage": "https://github.com/jackcooperdev/CauldronCLI#readme",
+  "description": "",
+  "dependencies": {
+    "commander": "^13.1.0"
+  }
+}
