@@ -1,10 +1,10 @@
 {
   "name": "cauldroncli",
   "version": "0.0.1",
-  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "type": "commonjs",
   "bin": {
     "cauldron": "./bin/index.js"
   },
@@ -18,6 +18,10 @@
   "bugs": {
     "url": "https://github.com/jackcooperdev/CauldronCLI/issues"
   },
+  "pkg": {
+    "scripts": "src/**/*.js",
+    "outputPath": "dist"
+  },
   "homepage": "https://github.com/jackcooperdev/CauldronCLI#readme",
   "description": "",
   "dependencies": {
@@ -25,9 +29,11 @@
     "commander": "^13.1.0",
     "figlet": "^1.8.0",
     "inquirer": "^12.5.0",
-    "ora": "^8.2.0"
+    "ora": "^8.2.0",
+    "ws": "^8.18.1"
   },
   "devDependencies": {
-    "@types/figlet": "~1.7.0"
+    "@types/figlet": "~1.7.0",
+    "@types/ws": "~8.18.1"
   }
 }

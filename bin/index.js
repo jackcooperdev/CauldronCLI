@@ -1,26 +1,20 @@
 #!/usr/bin/env node
-// noinspection RequiredAttributes
 
-import {Command} from 'commander';
-import {readdir} from 'fs/promises';
-import path from 'path';
-import {fileURLToPath,pathToFileURL } from 'url';
+const { Command } = require('commander');
+const { readdir } = require('fs').promises;
+const path = require('path');
 
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 const program = new Command();
 
 async function loadCommands() {
-    const commandsPath = path.join(__dirname, '../','src','commands');
+    const commandsPath = path.join(__dirname, '../', 'src', 'commands');
     try {
         const files = await readdir(commandsPath);
 
         for (const file of files) {
             if (file.endsWith('.js')) {
                 const commandPath = path.join(commandsPath, file);
-                const fileUrl = pathToFileURL(commandPath).toString();
-                const commandModule = await import(fileUrl); // Import the entire module
+                const commandModule = require(commandPath);
 
                 // Iterate through named exports and add them as commands
                 for (const commandName in commandModule) {
@@ -35,7 +29,6 @@ async function loadCommands() {
     }
 }
 
-
 async function main() {
     program
         .name('my-cli')
@@ -45,7 +38,6 @@ async function main() {
         .option('-f, --file <path>', 'specify the file to process')
         .option('-t, --timeout <seconds>', 'specify the timeout in seconds', '60')
         .option('-v, --verbose', 'enable verbose output');
-
 
     await loadCommands(); // Load commands dynamically
 
@@ -59,4 +51,4 @@ async function main() {
     }
 }
 
-main()
+main();
