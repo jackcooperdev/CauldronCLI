@@ -23,24 +23,30 @@
     "scripts": [
       "src/**/*.js"
     ],
+    "assets": [],
+    "targets": [
+      "node20-win-x64"
+    ],
     "outputPath": "dist"
   },
   "homepage": "https://github.com/jackcooperdev/CauldronCLI#readme",
   "description": "",
   "dependencies": {
-    "axios": "^1.8.4",
-    "chalk": "^5.4.1",
-    "cli-spinners": "^3.2.0",
+    "aes256": "^1.1.0",
+    "chalk": "^4.1.2",
     "commander": "^13.1.0",
     "figlet": "^1.8.0",
     "inquirer": "^12.5.0",
-    "open": "^10.1.0",
-    "ora": "^8.2.0",
+    "jwt-decode": "^4.0.0",
+    "keytar": "^7.9.0",
+    "node-fetch": "^2.7.0",
+    "ora-classic": "^5.4.2",
     "qs": "^6.14.0",
     "ws": "^8.18.1"
   },
   "devDependencies": {
     "@types/figlet": "~1.7.0",
+    "@types/qs": "~6.9.18",
     "@types/ws": "~8.18.1"
   }
 }

@@ -10,7 +10,7 @@ module.exports = {
         .description('Starts a WebSocket server in a separate process.')
         .argument('[port]', 'The port to listen on (default: 8080)', 8080)
         .action(async (port) => {
-            const serverPath = path.join(__dirname, '../','libs','ws.js');
+            const serverPath = path.join(__dirname, '../','utils','ws.js');
             const serverProcess = fork(serverPath, [port], { detached: true, stdio: 'ignore' }); // Detach and ignore stdio
 
             serverProcess.unref(); // unreference the child process
