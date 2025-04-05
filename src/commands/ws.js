@@ -31,9 +31,11 @@ module.exports = {
                 unlinkSync(pidFilePath); // Remove the PID file
 
                 console.log(`WebSocket server process (PID: ${pid}) stopped.`);
+                process.exit(0);
             } catch (err) {
                 console.log(err)
                 console.log('WebSocket server was not running or PID file not found.');
+                process.exit(0);
             }
         }),
 };

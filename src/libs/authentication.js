@@ -5,6 +5,7 @@ const {encrypt} = require("aes256");
 const AUTH0_CLIENT = 'nxoRS1sbJ0XqglOzlya6vIszrHUpkJum';
 const keytar = require('keytar')
 const os = require("os");
+const {grabServerAddress} = require("../utils/enviromentManager");
 const keytarAccount = os.userInfo().username;
 
 async function startAuthFlow() {
@@ -15,39 +16,31 @@ async function startAuthFlow() {
     });
 
     return new Promise(async (resolve, reject) => {
-        if (await keytar.getPassword('cauldroncli',keytarAccount) != null) {
-            let refresh = await keytar.getPassword('cauldroncli',keytarAccount);
-            let data = JSON.stringify({
-                token: refresh,
-            });
-            let config = {
-                method: 'post',
-                maxBodyLength: Infinity,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: data
-            };
-            const response = await fetch("http://localhost:3000/admin/refresh_cli", config);
-
-            if (!response.ok) {
-                let config = {
-                    method: 'post',
-                    maxBodyLength: Infinity,
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: main_data
-                };
-                try {
-                    const response = await fetch("https://cauldronmc.uk.auth0.com/oauth/device/code", config);
-                    resolve({login_needed:true,data:await response.json()});
-                } catch (e) {
-                    reject(e);
+        if (await keytar.getPassword('cauldroncli', keytarAccount) != null) {
+            try {
+                const response = await refresh();
+                if (!response.ok) {
+                    let config = {
+                        method: 'post',
+                        maxBodyLength: Infinity,
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: main_data
+                    };
+                    try {
+                        const response = await fetch("https://cauldronmc.uk.auth0.com/oauth/device/code", config);
+                        resolve({login_needed: true, data: await response.json()});
+                    } catch (e) {
+                        reject(e);
+                    }
+                } else {
+                    resolve({login_needed: false, data: await response.json()});
                 }
-            } else {
-                resolve({login_needed:false,data:await response.json()});
+            } catch (e) {
+                reject(e)
             }
+
         } else {
             let config = {
                 method: 'post',
@@ -59,7 +52,7 @@ async function startAuthFlow() {
             };
             try {
                 const response = await fetch("https://cauldronmc.uk.auth0.com/oauth/device/code", config);
-                resolve({login_needed:true,data:await response.json()});
+                resolve({login_needed: true, data: await response.json()});
             } catch (e) {
                 reject(e);
             }
@@ -90,7 +83,7 @@ async function waitForComplete(device_code) {
                     clearInterval(tryAuth);
                     let responseData = await response.json();
                     // noinspection JSIgnoredPromiseFromCall,ES6MissingAwait
-                    keytar.setPassword('cauldroncli',keytarAccount,responseData.refresh_token);
+                    keytar.setPassword('cauldroncli', keytarAccount, responseData.refresh_token);
                     resolve(responseData);
                 }
             } catch (e) {
@@ -102,32 +95,101 @@ async function waitForComplete(device_code) {
     })
 }
 
-async function grabUserInfo(accessToken) {
+async function grabUserInfo() {
     return new Promise(async (resolve, reject) => {
-        let config = {
-            method: 'get',
-            maxBodyLength: Infinity,
-            headers: {
-                'content-type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`
-            },
-        };
         try {
+            const accessToken = await grabAccessToken();
+            let config = {
+                method: 'get',
+                maxBodyLength: Infinity,
+                headers: {
+                    'content-type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+            };
+
             const response = await fetch("https://cauldronmc.uk.auth0.com/userinfo", config);
             resolve(response.json());
         } catch (e) {
             resolve(false);
         }
     })
+}
 
+async function grabAccessToken() {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Check For Access Token in Cred Manager
+            if (await keytar.getPassword('cauldronapi', keytarAccount) != null) {
+                // In cred manager
+                let found_access_token = await keytar.getPassword('cauldronapi', keytarAccount);
+                let decryptedKey = jwtDecode(found_access_token);
+
+
+                let currentTime = Math.floor(Date.now() / 1000);
+
+                if ((decryptedKey.exp - currentTime) > 1000) {
+                    resolve(found_access_token);
+                    return;
+                }
+            }
+            // Check For Refresh Token
+            if (await keytar.getPassword('cauldroncli', keytarAccount) === null){
+                console.log(`🚨 You have not logged in please log in using the login command!`)
+                process.exit(1);
+            }
+
+            const refresh_response = await refresh();
+
+            if (refresh_response.ok) {
+                let refreshJSON = await refresh_response.json();
+                let access_token = refreshJSON.access_token;
+                // noinspection ES6MissingAwait
+                keytar.setPassword('cauldronapi', keytarAccount, access_token);
+                resolve(access_token);
+            } else {
+                reject(refresh_response.error);
+            }
+        } catch (e) {
+            reject(e);
+        }
+    })
+}
+
+
+async function refresh() {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let refresh = await keytar.getPassword('cauldroncli', keytarAccount);
+            let data = JSON.stringify({
+                token: refresh,
+            });
+            let config = {
+                method: 'post',
+                maxBodyLength: Infinity,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: data
+            };
+            const response = await fetch(`${grabServerAddress(true)}admin/refresh_cli`, config);
+            resolve(response);
+        } catch (e) {
+            console.log(e)
+            console.log(grabServerAddress());
+            reject(e);
+        }
+    })
 
 }
 
 function logout() {
     return new Promise(async (resolve, reject) => {
-        if (await keytar.getPassword('cauldroncli',keytarAccount) != null) {
+        if (await keytar.getPassword('cauldroncli', keytarAccount) != null) {
             // noinspection ES6MissingAwait
-            keytar.deletePassword('cauldroncli',keytarAccount);
+            keytar.deletePassword('cauldroncli', keytarAccount);
+            // noinspection ES6MissingAwait
+            keytar.deletePassword('cauldronapi', keytarAccount);
             console.log(`👋 Logged Out`)
         } else {
             console.log('⚠️ You Are not Logged In')
@@ -136,7 +198,6 @@ function logout() {
 
 
 }
-
 
 
 module.exports = {startAuthFlow, waitForComplete, grabUserInfo, logout};
