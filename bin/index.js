@@ -8,6 +8,10 @@ const program = new Command();
 
 const command1 = require('../src/commands/ws')
 const command2 = require('../src/commands/login-to-api')
+const command3 = require('../src/commands/manage-installation')
+const command4 = require('../src/commands/minecraft-auth')
+
+const {initializeCauldron} = require("../src/libs/system");
 
 async function loadCommands() {
     // Add commands from each imported module
@@ -20,6 +24,17 @@ async function loadCommands() {
     for (const commandName in command2) {
         if (command2[commandName] instanceof Command) {
             program.addCommand(command2[commandName]);
+        }
+    }
+    for (const commandName in command3) {
+        if (command3[commandName] instanceof Command) {
+            program.addCommand(command3[commandName]);
+        }
+    }
+
+    for (const commandName in command4) {
+        if (command4[commandName] instanceof Command) {
+            program.addCommand(command4[commandName]);
         }
     }
     // Add more command loops for each imported module...
@@ -43,7 +58,6 @@ async function main() {
         .version('1.0.0')
         // .option('-d, --debug', 'output extra debugging information')
         // .option('-v, --verbose', 'enable verbose output');
-
     await loadCommands(); // Load commands dynamically
 
     program.parse(process.argv);

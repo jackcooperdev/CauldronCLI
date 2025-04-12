@@ -200,4 +200,4 @@ function logout() {
 }
 
 
-module.exports = {startAuthFlow, waitForComplete, grabUserInfo, logout};
+module.exports = {startAuthFlow, waitForComplete, grabUserInfo, logout,grabAccessToken};

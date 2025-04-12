@@ -35,10 +35,6 @@ async function sendToServer(params, auth) {
                 reject({ errorCode: 1, data: params })
                 return;
             }
-            if (!await isAPIOnline()) {
-                reject({ errorCode: 3, data: params })
-                return;
-            }
 
             const { method, url, data, headers } = params;
             let defaultHeaders = {
@@ -61,6 +57,7 @@ async function sendToServer(params, auth) {
             const response = await fetch(`${grabServerAddress(true)}${url}`,config);
             resolve(await response.json());
         } catch (err) {
+            console.log(err);
             if (err.status === 302) {
                 reject({errorCode: 2, data:params, auth: authData});
                 return;
@@ -82,6 +79,7 @@ async function isAPIOnline() {
         url:'ping'
     };
     try {
+            console.log('checking')
             const pingServer = await sendToServer(config,false);
             cauldronLogger.info("API Version: "+pingServer);
             return true;

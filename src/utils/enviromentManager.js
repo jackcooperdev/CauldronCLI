@@ -17,15 +17,18 @@ let DEVELOPMENT_MODE = false;
 let MODE = 0;
 let FORCE_MODE = false;
 
+let CAULDRON_PATH = grabPath();
+
 // Check for Override File
 let defaultFile = {
     LOCAL_ADDRESS: LOCAL_ADDRESS,
     PROD_ADDRESS: PROD_ADDRESS,
     DEVELOPMENT_MODE: DEVELOPMENT_MODE,
     FORCE_MODE: FORCE_MODE,
+    CAULDRON_PATH: CAULDRON_PATH
 };
 
-let CAULDRON_PATH = grabPath();
+
 let CURRENT_OPERATING_SYSTEM = getOperatingSystem();
 
 // Override Values
@@ -37,6 +40,8 @@ if (!fs.existsSync(path.join(os.homedir(), 'cauldroncli_admin.json'))) {
     PROD_ADDRESS = admin_file.PROD_ADDRESS;
     DEVELOPMENT_MODE = admin_file.DEVELOPMENT_MODE;
     FORCE_MODE = admin_file.FORCE_MODE;
+    CAULDRON_PATH = admin_file.CAULDRON_PATH;
+    process.env.CAULDRON_PATH = admin_file.CAULDRON_PATH;
 }
 
 
@@ -55,11 +60,6 @@ function grabServerAddress(includeProtocol) {
     }
 }
 
-function sendDebug(message) {
-    if (DEVELOPMENT_MODE) {
-        cauldronLogger.debug(message);
-    }
-}
 
 function grabPackwizLocation() {
     let fileName = 'packwiz';
@@ -70,4 +70,9 @@ function grabPackwizLocation() {
 
 }
 
-module.exports = { grabServerAddress, DEVELOPMENT_MODE,  sendDebug, grabPackwizLocation };
+function getEnginePath() {
+    return CAULDRON_PATH;
+}
+
+
+module.exports = { grabServerAddress, DEVELOPMENT_MODE, grabPackwizLocation, getEnginePath };

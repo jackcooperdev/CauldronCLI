@@ -1,11 +1,7 @@
 {
   "name": "cauldroncli",
   "version": "0.0.1",
-  "scripts": {
-    "build:esbuild": "esbuild bin/index.js --bundle --outfile=dist/build.cjs --format=cjs --platform=node --external:keytar --external:shelljs ",
-    "build:pkg": "pkg dist/build.cjs --target node20-win-x64 --output dist/cauldroncli.exe --compress Brotli",
-    "build": "npm run build:esbuild && npm run build:pkg"
-  },
+  "scripts": {},
   "type": "commonjs",
   "bin": {
     "cauldron": "./bin/index.js"
@@ -20,34 +16,32 @@
   "bugs": {
     "url": "https://github.com/jackcooperdev/CauldronCLI/issues"
   },
-  "pkg": {
-    "scripts": [],
-    "assets": [],
-    "targets": [
-      "node20-win-x64"
-    ],
-    "outputPath": "dist"
-  },
   "homepage": "https://github.com/jackcooperdev/CauldronCLI#readme",
   "description": "",
   "dependencies": {
-    "@jackcooperdev/cauldronengine": "^0.5.4",
+    "@inquirer/prompts": "^7.4.1",
+    "@jackcooperdev/cauldronauthentication": "file:../CauldronAuthentication",
+    "@jackcooperdev/cauldronengine": "file:../CauldronEngine",
     "aes256": "^1.1.0",
     "chalk": "^4.1.2",
     "commander": "^13.1.0",
+    "cryptr": "^6.3.0",
     "esbuild": "^0.25.2",
     "figlet": "^1.8.0",
-    "inquirer": "^12.5.0",
+    "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
     "keytar": "^7.9.0",
     "node-fetch": "^2.7.0",
     "ora-classic": "^5.4.2",
     "qs": "^6.14.0",
+    "rimraf": "^6.0.1",
+    "shelljs": "^0.9.2",
     "ws": "^8.18.1"
   },
   "devDependencies": {
     "@types/figlet": "~1.7.0",
     "@types/qs": "~6.9.18",
+    "@types/shelljs": "~0.8.15",
     "@types/ws": "~8.18.1"
   }
 }
