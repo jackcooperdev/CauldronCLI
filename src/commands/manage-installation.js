@@ -1,13 +1,21 @@
 // noinspection JSUnresolvedReference
 
-const {Command} = require('commander');
-const ora = require("ora-classic");
-const {resetCauldron} = require("../libs/system");
+import { Command } from 'commander';
 
-module.exports = {
+import ora from 'ora';
+import { resetCauldron, initializeCauldron } from '../libs/system.js';
+
+export default {
     reset: new Command('reset')
         .description('Reset Cauldron Installation')
         .action(async () => {
             await resetCauldron()
+            await initializeCauldron()
+        }),
+
+    setup: new Command('setup')
+        .description('Setup Cauldron Installation')
+        .action(async () => {
+            await initializeCauldron()
         }),
 };

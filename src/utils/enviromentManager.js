@@ -1,9 +1,10 @@
 // Environment Manager
-const path = require('path');
-const fs = require('fs');
-const os = require("node:os");
-const {cauldronLogger} = require("@jackcooperdev/cauldronengine/logger");
-const {grabPath, getOperatingSystem} = require("@jackcooperdev/cauldronengine/compat");
+import path from 'path';
+
+import fs from 'fs';
+import os from 'node:os';
+import { cauldronLogger } from '@jackcooperdev/cauldronengine/logger';
+import { grabPath, getOperatingSystem } from '@jackcooperdev/cauldronengine/compat';
 
 // Default Values
 
@@ -75,4 +76,4 @@ function getEnginePath() {
 }
 
 
-module.exports = { grabServerAddress, DEVELOPMENT_MODE, grabPackwizLocation, getEnginePath };
+export { grabServerAddress, DEVELOPMENT_MODE, grabPackwizLocation, getEnginePath };

@@ -1,10 +1,11 @@
 // noinspection JSUnresolvedReference
 
-const {Command} = require('commander');
-const {startAuthFlow, waitForComplete, grabUserInfo, logout} = require("../libs/authentication");
-const ora = require("ora-classic");
+import { Command } from 'commander';
 
-module.exports = {
+import { startAuthFlow, waitForComplete, grabUserInfo, logout } from '../libs/authentication.js';
+import ora from 'ora';
+
+export default {
     login_to_api: new Command('login')
         .description('Login To CauldronAPI')
         .action(async () => {
@@ -31,5 +32,14 @@ module.exports = {
         .description('Logout from CauldronAPI')
         .action(async () => {
             await logout()
+        }),
+
+    test: new Command('test')
+        .description('Logout from CauldronAPI')
+        .option('-d, --debug', 'output extra debugging information')
+        .action(async (options) => {
+            console.log(options)
+            console.log(this.parent.opts())
+            console.log('test')
         }),
 };

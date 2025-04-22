@@ -2,25 +2,27 @@
 
 
 // Dependencies
-const Cryptr = require('cryptr');
-const fs = require('fs');
-const path = require('path');
-const jwt = require('jsonwebtoken');
+import Cryptr from 'cryptr';
+
+import fs from 'fs';
+import path from 'path';
+import jwt from 'jsonwebtoken';
+import ora from 'ora';
 
 // Cauldron Imports
-const {grabPath} = require("@jackcooperdev/cauldronengine/compat");
-const {checkInternet} = require('@jackcooperdev/cauldronengine/online');
-const {startAuthenticationFlow} = require('@jackcooperdev/cauldronauthentication');
+import { grabPath } from '@jackcooperdev/cauldronengine/compat';
 
+import { checkInternet } from '@jackcooperdev/cauldronengine/online';
+import { startAuthenticationFlow } from '@jackcooperdev/cauldronauthentication';
 
 // Internal Dependencies
-const {cauldronLogger} = require('@jackcooperdev/cauldronengine/logger');
+import { cauldronLogger } from '@jackcooperdev/cauldronengine/logger';
 
 
 // Set Constants
 const CAULDRON_PATH = grabPath();
-const {verifyMinecraft} = require("@jackcooperdev/cauldronauthentication/mas");
-const {sendToServer} = require("../utils/apiCommunication");
+import { verifyMinecraft } from '@jackcooperdev/cauldronauthentication/mas';
+import { sendToServer } from '../utils/apiCommunication.js';
 
 
 // Not Secret just for added security
@@ -149,25 +151,52 @@ async function refreshAccounts(forceRefresh) {
     for (let idx in CURRENT_PROFILES) {
         try {
             if (!forceRefresh) {
-                C_IDENTIFIER = CURRENT_PROFILES[idx].identifier;
+
+                C_IDENTIFIER = CURRENT_PROFILES[idx].value;
                 const C_DATA = await grabAccountInfo(C_IDENTIFIER);
                 const C_EXP = jwt.decode(C_DATA.access_token).exp;
                 let timeLeft = secondsToTime(C_EXP - CURRENT_EPOCH);
                 if (timeLeft < 23) {
-                    cauldronLogger.info(`Refreshing Account: ${C_IDENTIFIER}`);
+                    const spinner = ora(`Refreshing Account: ${CURRENT_PROFILES[idx].name}`).start();
+                    cauldronLogger.info(`Refreshing Account: ${CURRENT_PROFILES[idx].name}`);
                     await processRefreshToken(C_IDENTIFIER, true);
-                    cauldronLogger.info(`Refreshed Account: ${C_IDENTIFIER}`);
+                    cauldronLogger.info(`Refreshed Account: ${CURRENT_PROFILES[idx].name}`);
+                    spinner.succeed(`Refreshed Account: ${CURRENT_PROFILES[idx].name}`);
                 }
             } else {
-                C_IDENTIFIER = CURRENT_PROFILES[idx].identifier;
-                cauldronLogger.info(`Refreshing Account: ${C_IDENTIFIER}`);
+                C_IDENTIFIER = CURRENT_PROFILES[idx].value;
+                const spinner = ora(`Refreshing Account: ${CURRENT_PROFILES[idx].name}`).start();
+                cauldronLogger.info(`Refreshing Account: ${CURRENT_PROFILES[idx].name}`);
                 await processRefreshToken(C_IDENTIFIER, true);
-                cauldronLogger.info(`Refreshed Account: ${C_IDENTIFIER}`);
+                cauldronLogger.info(`Refreshed Account: ${CURRENT_PROFILES[idx].name}`);
+                spinner.succeed(`Refreshed Account: ${CURRENT_PROFILES[idx].name}`);
             }
         } catch (e) {
             cauldronLogger.error(`Failed to Refresh Account: ${C_IDENTIFIER}`)
         }
     }
+}
+
+async function refreshAccount(identifier) {
+    const CURRENT_EPOCH = Math.round(Date.now() / 1000);
+    const CURRENT_PROFILES = getAuthedUsers();
+    let C_IDENTIFIER;
+        try {
+                C_IDENTIFIER = identifier;
+                const C_DATA = await grabAccountInfo(C_IDENTIFIER);
+                const C_EXP = jwt.decode(C_DATA.access_token).exp;
+                let timeLeft = secondsToTime(C_EXP - CURRENT_EPOCH);
+                if (timeLeft < 23) {
+                    const spinner = ora(`Refreshing Account: ${CURRENT_PROFILES[idx].name}`).start();
+                    cauldronLogger.info(`Refreshing Account: ${CURRENT_PROFILES[idx].name}`);
+                    await processRefreshToken(C_IDENTIFIER, true);
+                    cauldronLogger.info(`Refreshed Account: ${CURRENT_PROFILES[idx].name}`);
+                    spinner.succeed(`Refreshed Account: ${CURRENT_PROFILES[idx].name}`);
+                }
+        } catch (e) {
+            cauldronLogger.error(`Failed to Refresh Account: ${C_IDENTIFIER}`)
+        }
+
 }
 
 // Tools
@@ -248,9 +277,10 @@ async function refreshToken(refresh_token) {
 }
 
 
-module.exports = {
+export {
     startMCAccount,
     waitForComplete,
+    refreshAccount,
     encrypt,
     writeToAccountsFile,
     processRefreshToken,

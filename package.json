@@ -2,7 +2,7 @@
   "name": "cauldroncli",
   "version": "0.0.1",
   "scripts": {},
-  "type": "commonjs",
+  "type": "module",
   "bin": {
     "cauldron": "./bin/index.js"
   },
@@ -32,7 +32,7 @@
     "jwt-decode": "^4.0.0",
     "keytar": "^7.9.0",
     "node-fetch": "^2.7.0",
-    "ora-classic": "^5.4.2",
+    "ora": "^8.2.0",
     "qs": "^6.14.0",
     "rimraf": "^6.0.1",
     "shelljs": "^0.9.2",

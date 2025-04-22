@@ -1,35 +1,47 @@
 // noinspection JSUnresolvedReference
 
-const {Command} = require('commander');
-const ora = require("ora-classic");
-const {resetCauldron} = require("../libs/system");
-const {sendToServer} = require("../utils/apiCommunication");
-const {grabServerAddress} = require("../utils/enviromentManager");
-const {
+import { Command } from 'commander';
+
+import ora from 'ora';
+import { resetCauldron } from '../libs/system.js';
+import { sendToServer } from '../utils/apiCommunication.js';
+import { grabServerAddress } from '../utils/enviromentManager.js';
+
+import {
     waitForComplete,
     writeToAccountsFile,
     encrypt,
     processRefreshToken,
-    grabAccountInfo, getAuthedUsers, logoutUser
-} = require("../libs/minecraft-auth");
-const {startMCAccount} = require("../libs/minecraft-auth");
-const { select, Separator} = require("@inquirer/prompts");
+    grabAccountInfo,
+    getAuthedUsers,
+    logoutUser,
+    refreshAccounts,
+} from '../libs/minecraft-auth.js';
 
-module.exports = {
+import { startMCAccount } from '../libs/minecraft-auth.js';
+import { select, Separator } from '@inquirer/prompts';
+import { exec } from 'child_process';
+export default {
     add_account: new Command('add')
         .description('Add Minecraft Account')
         .action(async () => {
-            const spinner = ora(`Waiting For Login...`)
+            let spinner = ora(`Waiting For Login...`)
             try {
                 const AUTH_DATA = await startMCAccount();
 
                 let start = (process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open');
-                require('child_process').exec(start + ' ' + AUTH_DATA.data.url);
+                exec(start + ' ' + AUTH_DATA.data.url);
                 console.log(`✨  Opening Web Browser to Continue Login. If this does not work open this URL: ${AUTH_DATA.data.url}`)
                 spinner.start();
                 const sign_in = await waitForComplete(AUTH_DATA.data.code);
+                spinner.succeed(` Acquired Microsoft Refresh Token`);
+                spinner.start(`Writing To File...`)
                 await writeToAccountsFile(AUTH_DATA.data.code, {"refresh_token": encrypt(sign_in.token)});
+                spinner.succeed(` Written to File`);
+                spinner.start(`Logging into Minecraft...`)
                 await processRefreshToken(AUTH_DATA.data.code);
+                spinner.succeed(` Logged Into Minecraft`);
+                spinner.start(`Getting Account Info From Minecraft...`);
                 const account_info = await grabAccountInfo(AUTH_DATA.data.code);
                 spinner.succeed(`👋 Hello ${account_info.profile.username} Your account has been added!.`);
             } catch (e) {
@@ -43,7 +55,6 @@ module.exports = {
         .action(async () => {
             const users = await getAuthedUsers();
             users.push({"name":"Exit",value:false})
-            console.log(users)
             const answer = await select({
                 message: 'Select a User to Remove',
                 choices: users
@@ -53,5 +64,11 @@ module.exports = {
                 await logoutUser(answer);
                 console.log("💥  Removed Account")
             }
+        }),
+
+    refresh: new Command('refresh')
+        .description('Refresh Minecraft Accounts')
+        .action(async () => {
+           await refreshAccounts(true);
         }),
 };

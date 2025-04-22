@@ -1,16 +1,19 @@
 // wsCommands.js
-const { Command } = require('commander');
-const { fork } = require('child_process');
-const path = require('path');
-const {writeFileSync, readFileSync, unlinkSync} = require("node:fs");
-const homedir = require('os').homedir();
+import { Command } from 'commander';
+import os from 'os'
+import { fork } from 'child_process';
+import path from 'path';
+import { writeFileSync, readFileSync, unlinkSync } from 'node:fs';
+
+const homedir = os.homedir();
 const pidFilePath = path.join(homedir,'wsServer.pid');
-module.exports = {
+
+export default {
     websocket: new Command('websocket')
         .description('Starts a WebSocket server in a separate process.')
         .argument('[port]', 'The port to listen on (default: 8080)', 8080)
         .action(async (port) => {
-            const serverPath = path.join(__dirname, '../','utils','ws.js');
+            const serverPath = path.join(__dirname, '../','utils','websocket.js');
             const serverProcess = fork(serverPath, [port], { detached: true, stdio: 'ignore' }); // Detach and ignore stdio
 
             serverProcess.unref(); // unreference the child process

@@ -1,17 +1,17 @@
-const {getEnginePath} = require("../utils/enviromentManager");
-const {getOperatingSystem} = require("@jackcooperdev/cauldronengine/compat");
-const {checkJVM} = require("@jackcooperdev/cauldronengine/jvm");
-const {cauldronLogger} = require("@jackcooperdev/cauldronengine/logger");
-const {getPackwizJVM} = require("@jackcooperdev/cauldronengine/manifest");
-const {verifyInstallation} = require("@jackcooperdev/cauldronengine/queue");
-const {grabStaticFileServer} = require("@jackcooperdev/cauldronengine/files");
-const ora = require("ora-classic");
-const {join} = require("node:path");
-const path = require("path");
-const shelljs = require("shelljs");
-const fs = require("fs");
-const {checkInternet} = require("@jackcooperdev/cauldronengine/online");
-const { rimraf } = require('rimraf')
+import { getEnginePath } from '../utils/enviromentManager.js';
+import { getOperatingSystem } from '@jackcooperdev/cauldronengine/compat';
+import { checkJVM } from '@jackcooperdev/cauldronengine/jvm';
+import { cauldronLogger } from '@jackcooperdev/cauldronengine/logger';
+import { getPackwizJVM } from '@jackcooperdev/cauldronengine/manifest';
+import { verifyInstallation } from '@jackcooperdev/cauldronengine/queue';
+import { grabStaticFileServer } from '@jackcooperdev/cauldronengine/files';
+import ora from 'ora';
+import { join } from 'node:path';
+import path from 'path';
+import shelljs from 'shelljs';
+import fs from 'fs';
+import { checkInternet } from '@jackcooperdev/cauldronengine/online';
+import { rimraf } from 'rimraf';
 // Set Constants
 
 const CAULDRON_PATH = getEnginePath();
@@ -139,4 +139,4 @@ async function resetCauldron() {
     await rimraf(path.join(CAULDRON_PATH));
 }
 
-module.exports = {initializeCauldron, resetCauldron};
+export {initializeCauldron, resetCauldron};

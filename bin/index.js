@@ -1,17 +1,15 @@
 #!/usr/bin/env node
-
-const { Command } = require('commander');
-const { readdir } = require('fs').promises;
-const path = require('path');
+import { Command } from 'commander';
+import 'fs';
+import path from 'path';
 
 const program = new Command();
 
-const command1 = require('../src/commands/ws')
-const command2 = require('../src/commands/login-to-api')
-const command3 = require('../src/commands/manage-installation')
-const command4 = require('../src/commands/minecraft-auth')
+import command1 from '../src/commands/websockets.js';
+import command2 from '../src/commands/login-to-api.js';
+import command3 from '../src/commands/manage-installation.js';
+import command4 from '../src/commands/minecraft-auth.js';
 
-const {initializeCauldron} = require("../src/libs/system");
 
 async function loadCommands() {
     // Add commands from each imported module
@@ -37,18 +35,6 @@ async function loadCommands() {
             program.addCommand(command4[commandName]);
         }
     }
-    // Add more command loops for each imported module...
-    // for (const commandName in command3) {
-    //     if (command3[commandName] instanceof Command) {
-    //         program.addCommand(command3[commandName]);
-    //     }
-    // }
-    // for (const commandName in command4) {
-    //     if (command4[commandName] instanceof Command) {
-    //         program.addCommand(command4[commandName]);
-    //     }
-    // }
-
 }
 
 async function main() {
@@ -56,18 +42,13 @@ async function main() {
         .name('my-cli')
         .description('A CLI application built with Commander.js')
         .version('1.0.0')
-        // .option('-d, --debug', 'output extra debugging information')
-        // .option('-v, --verbose', 'enable verbose output');
-    await loadCommands(); // Load commands dynamically
+        .option('-d, --debug', 'output extra debugging information')
+
+
+    await loadCommands(); // Load other commands
 
     program.parse(process.argv);
 
-    // const options = program.opts();
-    //
-    // if (options.debug) {
-    //     console.log('Debug mode is enabled');
-    //     console.log('Options:', options);
-    // }
 }
 
 main();

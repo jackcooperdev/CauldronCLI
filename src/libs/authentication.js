@@ -1,11 +1,10 @@
-const qs = require('qs');
-const fetch = require("node-fetch");
-const {jwtDecode} = require("jwt-decode");
-const {encrypt} = require("aes256");
+import qs from 'qs';
+import fetch from 'node-fetch';
+import { jwtDecode } from 'jwt-decode';
 const AUTH0_CLIENT = 'nxoRS1sbJ0XqglOzlya6vIszrHUpkJum';
-const keytar = require('keytar')
-const os = require("os");
-const {grabServerAddress} = require("../utils/enviromentManager");
+import keytar from 'keytar';
+import os from 'os';
+import { grabServerAddress } from '../utils/enviromentManager.js';
 const keytarAccount = os.userInfo().username;
 
 async function startAuthFlow() {
@@ -16,7 +15,7 @@ async function startAuthFlow() {
     });
 
     return new Promise(async (resolve, reject) => {
-        if (await keytar.getPassword('cauldroncli', keytarAccount) != null) {
+        if ((await keytar.getPassword('cauldroncli', keytarAccount)) != null) {
             try {
                 const response = await refresh();
                 if (!response.ok) {
@@ -57,7 +56,7 @@ async function startAuthFlow() {
                 reject(e);
             }
         }
-    })
+    });
 }
 
 async function waitForComplete(device_code) {
@@ -120,7 +119,7 @@ async function grabAccessToken() {
     return new Promise(async (resolve, reject) => {
         try {
             // Check For Access Token in Cred Manager
-            if (await keytar.getPassword('cauldronapi', keytarAccount) != null) {
+            if ((await keytar.getPassword('cauldronapi', keytarAccount)) != null) {
                 // In cred manager
                 let found_access_token = await keytar.getPassword('cauldronapi', keytarAccount);
                 let decryptedKey = jwtDecode(found_access_token);
@@ -134,7 +133,7 @@ async function grabAccessToken() {
                 }
             }
             // Check For Refresh Token
-            if (await keytar.getPassword('cauldroncli', keytarAccount) === null){
+            if ((await keytar.getPassword('cauldroncli', keytarAccount)) === null){
                 console.log(`🚨 You have not logged in please log in using the login command!`)
                 process.exit(1);
             }
@@ -153,7 +152,7 @@ async function grabAccessToken() {
         } catch (e) {
             reject(e);
         }
-    })
+    });
 }
 
 
@@ -185,7 +184,7 @@ async function refresh() {
 
 function logout() {
     return new Promise(async (resolve, reject) => {
-        if (await keytar.getPassword('cauldroncli', keytarAccount) != null) {
+        if ((await keytar.getPassword('cauldroncli', keytarAccount)) != null) {
             // noinspection ES6MissingAwait
             keytar.deletePassword('cauldroncli', keytarAccount);
             // noinspection ES6MissingAwait
@@ -194,10 +193,10 @@ function logout() {
         } else {
             console.log('⚠️ You Are not Logged In')
         }
-    })
+    });
 
 
 }
 
 
-module.exports = {startAuthFlow, waitForComplete, grabUserInfo, logout,grabAccessToken};
+export {startAuthFlow, waitForComplete, grabUserInfo, logout,grabAccessToken};

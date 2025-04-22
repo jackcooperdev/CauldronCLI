@@ -2,14 +2,14 @@
 
 
 // Dependencies
-const fetch = require("node-fetch");
+import fetch from 'node-fetch';
 
-const { cauldronLogger } = require('@jackcooperdev/cauldronengine/logger');
+import { cauldronLogger } from '@jackcooperdev/cauldronengine/logger';
+import { grabServerAddress } from './enviromentManager.js';
+import { grabAccessToken } from '../libs/authentication.js';
 
-const { grabServerAddress } = require("./enviromentManager");
-const { grabAccessToken } = require('../libs/authentication')
 // Cauldron Imports
-const { checkInternet } = require("@jackcooperdev/cauldronengine/online");
+import { checkInternet } from '@jackcooperdev/cauldronengine/online';
 
 
 
@@ -31,7 +31,7 @@ async function sendToServer(params, auth) {
     return new Promise(async (resolve, reject) => {
         let authData;
         try {
-            if (!await checkInternet()) {
+            if (!(await checkInternet())) {
                 reject({ errorCode: 1, data: params })
                 return;
             }
@@ -70,7 +70,7 @@ async function sendToServer(params, auth) {
             }
             reject({ errorCode: 4, data: params, auth: authData, err:err });
         }
-    })
+    });
 }
 
 async function isAPIOnline() {
@@ -97,4 +97,4 @@ async function isAPIOnline() {
 
 
 
-module.exports = { sendToServer, isAPIOnline };
+export { sendToServer, isAPIOnline };
