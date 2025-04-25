@@ -10,7 +10,7 @@ import { join } from 'node:path';
 import path from 'path';
 import shelljs from 'shelljs';
 import fs from 'fs';
-import { checkInternet } from '@jackcooperdev/cauldronengine/online';
+import { checkInternet } from "@jackcooperdev/cauldronengine/online";
 import { rimraf } from 'rimraf';
 // Set Constants
 
@@ -104,12 +104,8 @@ async function initializeCauldron() {
 
             } else {
                 if (await checkInternet()) {
-                    downloadJVMInBackground().then(function() {
-                        cauldronLogger.debug("Refreshed JVM")
-                    });
-                    downloadPackWizInBackground().then(function() {
-                        cauldronLogger.debug("Refreshed Packwiz")
-                    });
+                    await downloadJVMInBackground()
+                    await downloadPackWizInBackground()
 
                 }
             }

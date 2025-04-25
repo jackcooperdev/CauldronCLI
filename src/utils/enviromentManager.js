@@ -13,6 +13,8 @@ import { grabPath, getOperatingSystem } from '@jackcooperdev/cauldronengine/comp
 let LOCAL_ADDRESS = "localhost:3000"
 let PROD_ADDRESS = "api.cauldronapi.com";
 
+let LOCAL_PROTOCOL = "http"
+
 let DEVELOPMENT_MODE = false;
 
 let MODE = 0;
@@ -26,7 +28,8 @@ let defaultFile = {
     PROD_ADDRESS: PROD_ADDRESS,
     DEVELOPMENT_MODE: DEVELOPMENT_MODE,
     FORCE_MODE: FORCE_MODE,
-    CAULDRON_PATH: CAULDRON_PATH
+    CAULDRON_PATH: CAULDRON_PATH,
+    LOCAL_PROTOCOL: LOCAL_PROTOCOL,
 };
 
 
@@ -40,6 +43,7 @@ if (!fs.existsSync(path.join(os.homedir(), 'cauldroncli_admin.json'))) {
     LOCAL_ADDRESS = admin_file.LOCAL_ADDRESS;
     PROD_ADDRESS = admin_file.PROD_ADDRESS;
     DEVELOPMENT_MODE = admin_file.DEVELOPMENT_MODE;
+    LOCAL_PROTOCOL = admin_file.LOCAL_PROTOCOL;
     FORCE_MODE = admin_file.FORCE_MODE;
     CAULDRON_PATH = admin_file.CAULDRON_PATH;
     process.env.CAULDRON_PATH = admin_file.CAULDRON_PATH;
@@ -49,7 +53,7 @@ if (!fs.existsSync(path.join(os.homedir(), 'cauldroncli_admin.json'))) {
 function grabServerAddress(includeProtocol) {
     if (DEVELOPMENT_MODE && includeProtocol) {
         // noinspection HttpUrlsUsage
-        return `http://${LOCAL_ADDRESS}/`;
+        return `${LOCAL_PROTOCOL}://${LOCAL_ADDRESS}/`;
     } else if (DEVELOPMENT_MODE && !includeProtocol) {
         return `${LOCAL_ADDRESS}/`;
     }

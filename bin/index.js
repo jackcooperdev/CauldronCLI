@@ -9,6 +9,7 @@ import command1 from '../src/commands/websockets.js';
 import command2 from '../src/commands/login-to-api.js';
 import command3 from '../src/commands/manage-installation.js';
 import command4 from '../src/commands/minecraft-auth.js';
+import command5 from '../src/commands/launcher.js';
 
 
 async function loadCommands() {
@@ -35,6 +36,12 @@ async function loadCommands() {
             program.addCommand(command4[commandName]);
         }
     }
+
+    for (const commandName in command5) {
+        if (command5[commandName] instanceof Command) {
+            program.addCommand(command5[commandName]);
+        }
+    }
 }
 
 async function main() {
@@ -42,7 +49,7 @@ async function main() {
         .name('my-cli')
         .description('A CLI application built with Commander.js')
         .version('1.0.0')
-        .option('-d, --debug', 'output extra debugging information')
+        //.option('-d, --debug', 'output extra debugging information')
 
 
     await loadCommands(); // Load other commands
