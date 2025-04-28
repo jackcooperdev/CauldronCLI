@@ -1,11 +1,11 @@
 // noinspection JSUnresolvedReference
 
-import { Command } from 'commander';
+import {Command} from 'commander';
 
 import ora from 'ora';
-import { resetCauldron } from '../libs/system.js';
-import { sendToServer } from '../utils/apiCommunication.js';
-import { grabServerAddress } from '../utils/enviromentManager.js';
+import {resetCauldron} from '../libs/system.js';
+import {sendToServer} from '../utils/apiCommunication.js';
+import {grabServerAddress} from '../utils/enviromentManager.js';
 
 import {
     waitForComplete,
@@ -18,9 +18,10 @@ import {
     refreshAccounts,
 } from '../libs/minecraft-auth.js';
 
-import { startMCAccount } from '../libs/minecraft-auth.js';
-import { select, Separator } from '@inquirer/prompts';
-import { exec } from 'child_process';
+import {startMCAccount} from '../libs/minecraft-auth.js';
+import {select, Separator} from '@inquirer/prompts';
+import {exec} from 'child_process';
+
 export default {
     add_account: new Command('add')
         .description('Add Minecraft Account')
@@ -28,7 +29,6 @@ export default {
             let spinner = ora(`Waiting For Login...`)
             try {
                 const AUTH_DATA = await startMCAccount();
-
                 let start = (process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open');
                 exec(start + ' ' + AUTH_DATA.data.url);
                 console.log(`✨  Opening Web Browser to Continue Login. If this does not work open this URL: ${AUTH_DATA.data.url}`)
@@ -54,7 +54,7 @@ export default {
         .description('Remove Minecraft Account')
         .action(async () => {
             const users = await getAuthedUsers();
-            users.push({"name":"Exit",value:false})
+            users.push({"name": "Exit", value: false})
             const answer = await select({
                 message: 'Select a User to Remove',
                 choices: users
@@ -69,6 +69,6 @@ export default {
     refresh: new Command('refresh')
         .description('Refresh Minecraft Accounts')
         .action(async () => {
-           await refreshAccounts(true);
+            await refreshAccounts(true);
         }),
 };

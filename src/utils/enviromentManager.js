@@ -3,8 +3,8 @@ import path from 'path';
 
 import fs from 'fs';
 import os from 'node:os';
-import { cauldronLogger } from '@jackcooperdev/cauldronengine/logger';
-import { grabPath, getOperatingSystem } from '@jackcooperdev/cauldronengine/compat';
+import {cauldronLogger} from '@jackcooperdev/cauldronengine/logger';
+import {grabPath, getOperatingSystem} from '@jackcooperdev/cauldronengine/compat';
 
 // Default Values
 
@@ -71,7 +71,7 @@ function grabPackwizLocation() {
     if (CURRENT_OPERATING_SYSTEM === 'windows') {
         fileName += '.exe';
     }
-    return path.join(CAULDRON_PATH,'packwiz',fileName);
+    return path.join(CAULDRON_PATH, 'packwiz', fileName);
 
 }
 
@@ -80,4 +80,4 @@ function getEnginePath() {
 }
 
 
-export { grabServerAddress, DEVELOPMENT_MODE, grabPackwizLocation, getEnginePath };
+export {grabServerAddress, DEVELOPMENT_MODE, grabPackwizLocation, getEnginePath};

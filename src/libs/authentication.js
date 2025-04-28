@@ -1,10 +1,12 @@
 import qs from 'qs';
 import fetch from 'node-fetch';
-import { jwtDecode } from 'jwt-decode';
+import {jwtDecode} from 'jwt-decode';
+
 const AUTH0_CLIENT = 'nxoRS1sbJ0XqglOzlya6vIszrHUpkJum';
 import keytar from 'keytar';
 import os from 'os';
-import { grabServerAddress } from '../utils/enviromentManager.js';
+import {grabServerAddress} from '../utils/enviromentManager.js';
+
 const keytarAccount = os.userInfo().username;
 
 async function startAuthFlow() {
@@ -133,7 +135,7 @@ async function grabAccessToken() {
                 }
             }
             // Check For Refresh Token
-            if ((await keytar.getPassword('cauldroncli', keytarAccount)) === null){
+            if ((await keytar.getPassword('cauldroncli', keytarAccount)) === null) {
                 console.log(`🚨 You have not logged in please log in using the login command!`)
                 process.exit(1);
             }
@@ -199,4 +201,4 @@ function logout() {
 }
 
 
-export {startAuthFlow, waitForComplete, grabUserInfo, logout,grabAccessToken};
+export {startAuthFlow, waitForComplete, grabUserInfo, logout, grabAccessToken};

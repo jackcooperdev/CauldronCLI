@@ -1,17 +1,17 @@
-import { getEnginePath } from '../utils/enviromentManager.js';
-import { getOperatingSystem } from '@jackcooperdev/cauldronengine/compat';
-import { checkJVM } from '@jackcooperdev/cauldronengine/jvm';
-import { cauldronLogger } from '@jackcooperdev/cauldronengine/logger';
-import { getPackwizJVM } from '@jackcooperdev/cauldronengine/manifest';
-import { verifyInstallation } from '@jackcooperdev/cauldronengine/queue';
-import { grabStaticFileServer } from '@jackcooperdev/cauldronengine/files';
+import {getEnginePath} from '../utils/enviromentManager.js';
+import {getOperatingSystem} from '@jackcooperdev/cauldronengine/compat';
+import {checkJVM} from '@jackcooperdev/cauldronengine/jvm';
+import {cauldronLogger} from '@jackcooperdev/cauldronengine/logger';
+import {getPackwizJVM} from '@jackcooperdev/cauldronengine/manifest';
+import {verifyInstallation} from '@jackcooperdev/cauldronengine/queue';
+import {grabStaticFileServer} from '@jackcooperdev/cauldronengine/files';
 import ora from 'ora';
-import { join } from 'node:path';
+import {join} from 'node:path';
 import path from 'path';
 import shelljs from 'shelljs';
 import fs from 'fs';
-import { checkInternet } from "@jackcooperdev/cauldronengine/online";
-import { rimraf } from 'rimraf';
+import {checkInternet} from "@jackcooperdev/cauldronengine/online";
+import {rimraf} from 'rimraf';
 // Set Constants
 
 const CAULDRON_PATH = getEnginePath();
@@ -83,10 +83,10 @@ async function initializeCauldron() {
         }
         if (!fs.existsSync(path.join(CAULDRON_PATH, 'offline-versions.json'))) {
             let offlineTemplate = {
-                "versions" : {},
+                "versions": {},
                 "configs": {}
             }
-            fs.writeFileSync(path.join(CAULDRON_PATH, 'offline-versions.json'),JSON.stringify(offlineTemplate) );
+            fs.writeFileSync(path.join(CAULDRON_PATH, 'offline-versions.json'), JSON.stringify(offlineTemplate));
         }
         if (!fs.existsSync(path.join(CAULDRON_PATH, 'modpacks'))) {
             fs.mkdirSync(path.join(CAULDRON_PATH, 'modpacks'));

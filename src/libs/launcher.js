@@ -4,15 +4,15 @@ import shell from 'shelljs';
 
 import path from 'path';
 import fs from 'fs';
-import { spawn } from 'child_process';
+import {spawn} from 'child_process';
 
 // Cauldron Imports
-import { grabPath } from '@jackcooperdev/cauldronengine/compat';
+import {grabPath} from '@jackcooperdev/cauldronengine/compat';
 
-import { getModList } from '@jackcooperdev/packwiz_js';
-import { grabAccountInfo } from './minecraft-auth.js';
-import { launchGame } from '@jackcooperdev/cauldronengine/launcher';
-import { whatIsThis, checkManifest } from '@jackcooperdev/cauldronengine/manifest';
+import {getModList} from '@jackcooperdev/packwiz_js';
+import {grabAccountInfo} from './minecraft-auth.js';
+import {launchGame} from '@jackcooperdev/cauldronengine/launcher';
+import {whatIsThis, checkManifest} from '@jackcooperdev/cauldronengine/manifest';
 // Internal Imports
 
 

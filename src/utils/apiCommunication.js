@@ -4,14 +4,12 @@
 // Dependencies
 import fetch from 'node-fetch';
 
-import { cauldronLogger } from '@jackcooperdev/cauldronengine/logger';
-import { grabServerAddress } from './enviromentManager.js';
-import { grabAccessToken } from '../libs/authentication.js';
+import {cauldronLogger} from '@jackcooperdev/cauldronengine/logger';
+import {grabServerAddress} from './enviromentManager.js';
+import {grabAccessToken} from '../libs/authentication.js';
 
 // Cauldron Imports
-import { checkInternet } from '@jackcooperdev/cauldronengine/online';
-
-
+import {checkInternet} from '@jackcooperdev/cauldronengine/online';
 
 
 // Set Constants
@@ -32,20 +30,20 @@ async function sendToServer(params, auth) {
         let authData;
         try {
             if (!(await checkInternet())) {
-                reject({ errorCode: 1, data: params })
+                reject({errorCode: 1, data: params})
                 return;
             }
 
-            const { method, url, data, headers } = params;
+            const {method, url, data, headers} = params;
             let defaultHeaders = {
                 'Content-Type': 'application/json'
             }
-            let newHeaders = { ...headers, ...defaultHeaders };
+            let newHeaders = {...headers, ...defaultHeaders};
 
             if (auth) {
                 authData = await grabAccessToken();
-                let authHeader = { 'Authorization': 'Bearer ' + authData };
-                newHeaders = { ...newHeaders, ...authHeader };
+                let authHeader = {'Authorization': 'Bearer ' + authData};
+                newHeaders = {...newHeaders, ...authHeader};
             }
             let config = {
                 method: method,
@@ -54,35 +52,35 @@ async function sendToServer(params, auth) {
                 maxRedirects: 0,
                 maxBodyLength: Infinity,
             };
-            const response = await fetch(`${grabServerAddress(true)}${url}`,config);
+            const response = await fetch(`${grabServerAddress(true)}${url}`, config);
             resolve(await response.json());
         } catch (err) {
             console.log(err);
             if (err.status === 302) {
-                reject({errorCode: 2, data:params, auth: authData});
+                reject({errorCode: 2, data: params, auth: authData});
                 return;
             }
             if (err.code) {
                 if (err.code === 'ECONNREFUSED' || err.code === 'ERR_BAD_RESPONSE') {
-                    reject({ errorCode: 3, data: params, auth: authData });
+                    reject({errorCode: 3, data: params, auth: authData});
                     return;
                 }
             }
-            reject({ errorCode: 4, data: params, auth: authData, err:err });
+            reject({errorCode: 4, data: params, auth: authData, err: err});
         }
     });
 }
 
 async function isAPIOnline() {
     let config = {
-        method:'get',
-        url:'ping'
+        method: 'get',
+        url: 'ping'
     };
     try {
-            console.log('checking')
-            const pingServer = await sendToServer(config,false);
-            cauldronLogger.info("API Version: "+pingServer);
-            return true;
+        console.log('checking')
+        const pingServer = await sendToServer(config, false);
+        cauldronLogger.info("API Version: " + pingServer);
+        return true;
 
     } catch (err) {
         return false;
@@ -91,10 +89,4 @@ async function isAPIOnline() {
 }
 
 
-
-
-
-
-
-
-export { sendToServer, isAPIOnline };
+export {sendToServer, isAPIOnline};

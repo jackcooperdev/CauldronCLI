@@ -16,7 +16,7 @@ export default {
         .option('-l, --mc_loader <type>', 'Minecraft Loader', 'vanilla')
         .option('-x, --mc_loader_version <type>', 'Minecraft Loader Version', undefined)
         .option('-m, --account <type>', 'Minecraft Account Identifier')
-        .option('-a, --attach', 'Attach to Minecraft',false)
+        .option('-a, --attach', 'Attach to Minecraft', false)
         .option('-d, --debug', 'output extra debugging information')
         .action(async (options) => {
             if (options.debug) {

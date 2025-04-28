@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { Command } from 'commander';
+import {Command} from 'commander';
 import 'fs';
 import path from 'path';
 
@@ -49,7 +49,7 @@ async function main() {
         .name('my-cli')
         .description('A CLI application built with Commander.js')
         .version('1.0.0')
-        //.option('-d, --debug', 'output extra debugging information')
+    //.option('-d, --debug', 'output extra debugging information')
 
 
     await loadCommands(); // Load other commands

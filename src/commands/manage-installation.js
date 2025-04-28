@@ -1,8 +1,9 @@
 // noinspection JSUnresolvedReference
 
-import { Command } from 'commander';
+import {Command} from 'commander';
 import ora from 'ora';
-import { resetCauldron, initializeCauldron } from '../libs/system.js';
+import {resetCauldron, initializeCauldron} from '../libs/system.js';
+
 let enabledDebugNamespaces = [];
 export default {
     reset: new Command('reset')
