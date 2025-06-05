@@ -13,6 +13,7 @@ import {getModList} from '@jackcooperdev/packwiz_js';
 import {grabAccountInfo} from './minecraft-auth.js';
 import {launchGame} from '@jackcooperdev/cauldronengine/launcher';
 import {whatIsThis, checkManifest} from '@jackcooperdev/cauldronengine/manifest';
+import {cauldronLogger} from "@jackcooperdev/cauldronengine/logger";
 // Internal Imports
 
 
@@ -27,6 +28,9 @@ async function isDownloaded(version, loader) {
             version = identified.version;
         }
         let combined = `${version}-${loader}`;
+        if (!fs.existsSync(path.join(grabPath(), 'offline-versions.json'))) {
+            fs.writeFileSync(path.join(grabPath(), 'offline-versions.json'),JSON.stringify({versions:{}}));
+        }
         let currentOfflineVersions = JSON.parse(fs.readFileSync(path.join(grabPath(), 'offline-versions.json')).toString());
         if (currentOfflineVersions.versions[combined]) {
             resolve(true);
@@ -68,7 +72,7 @@ async function launchMinecraft(sessionID, mcAccountID, profileInfo, installOnly)
 
             // Apply Custom Arguments (custom_args.json)
             if (fs.existsSync(path.join(grabPath(), 'custom_args.json'))) {
-                let customArgsFile = JSON.parse(fs.readFileSync(path.join(grabPath(), 'custom_args.json')));
+                let customArgsFile = JSON.parse(fs.readFileSync(path.join(grabPath(), 'custom_args.json')).toString());
                 if (customArgsFile.jvm) {
                     overrides['jvm'] = {...overrides['jvm'], ...customArgsFile.jvm};
                 }
@@ -109,12 +113,12 @@ async function launchMinecraft(sessionID, mcAccountID, profileInfo, installOnly)
                     }
                 }
             }
-
-            if (installOnly && (await isDownloaded(profileInfo.options.version, profileInfo.options.loader))) {
-                sendDebug('Install Only Skipped')
+            let installLock = true
+            if (installOnly && !installLock && (await isDownloaded(profileInfo.options.version, profileInfo.options.loader))) {
+                cauldronLogger.debug('Install Only Skipped')
                 resolve('restored-from-offline')
             } else {
-                const launchMinecraftSession = await launchGame(profileInfo.options.version, installOnly, profileInfo.options.loader, profileInfo.lVersion, authData, false, overrides)
+                const launchMinecraftSession = await launchGame(profileInfo.options.version, installOnly, profileInfo.options.loader, profileInfo.lVersion, authData, overrides)
                 if (installOnly && !(await isDownloaded(profileInfo.options.version, profileInfo.options.loader))) {
                     let currentOfflineVersions = JSON.parse(fs.readFileSync(path.join(grabPath(), 'offline-versions.json')).toString());
                     currentOfflineVersions['versions'][`${profileInfo.options.version}-${profileInfo.options.loader}`] = {

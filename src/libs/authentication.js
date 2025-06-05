@@ -139,9 +139,7 @@ async function grabAccessToken() {
                 console.log(`🚨 You have not logged in please log in using the login command!`)
                 process.exit(1);
             }
-
             const refresh_response = await refresh();
-
             if (refresh_response.ok) {
                 let refreshJSON = await refresh_response.json();
                 let access_token = refreshJSON.access_token;

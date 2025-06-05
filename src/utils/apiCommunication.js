@@ -41,7 +41,9 @@ async function sendToServer(params, auth) {
             let newHeaders = {...headers, ...defaultHeaders};
 
             if (auth) {
+                console.log('config')
                 authData = await grabAccessToken();
+                console.log(authData);
                 let authHeader = {'Authorization': 'Bearer ' + authData};
                 newHeaders = {...newHeaders, ...authHeader};
             }
@@ -52,10 +54,12 @@ async function sendToServer(params, auth) {
                 maxRedirects: 0,
                 maxBodyLength: Infinity,
             };
+
             const response = await fetch(`${grabServerAddress(true)}${url}`, config);
             resolve(await response.json());
         } catch (err) {
             console.log(err);
+            console.log(grabServerAddress(false));
             if (err.status === 302) {
                 reject({errorCode: 2, data: params, auth: authData});
                 return;

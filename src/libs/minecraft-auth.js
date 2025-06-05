@@ -64,7 +64,6 @@ async function processRefreshToken(identifier, forceRefresh) {
     return new Promise(async (resolve, reject) => {
         try {
             const accountInfo = await grabAccountInfo(identifier);
-
             if (await checkInternet()) {
                 const verify = await verifyMinecraft(accountInfo.access_token);
                 if (!verify || forceRefresh) {
@@ -137,7 +136,7 @@ async function writeToAccountsFile(identifier, data, clear) {
             delete currentFile.accounts[identifier];
         }
     }
-    fs.writeFileSync(path.join(CAULDRON_PATH, 'cauldron_auth.json'), JSON.stringify(currentFile));
+    fs.writeFileSync(path.join(CAULDRON_PATH, 'cauldron_auth.json'), JSON.stringify(currentFile, null, 2));
 }
 
 async function logoutUser(identifier) {
@@ -152,24 +151,19 @@ async function refreshAccounts(forceRefresh) {
     for (let idx in CURRENT_PROFILES) {
         try {
             if (!forceRefresh) {
-
                 C_IDENTIFIER = CURRENT_PROFILES[idx].value;
                 const C_DATA = await grabAccountInfo(C_IDENTIFIER);
                 const C_EXP = jwt.decode(C_DATA.access_token).exp;
                 let timeLeft = secondsToTime(C_EXP - CURRENT_EPOCH);
                 if (timeLeft < 23) {
                     const spinner = ora(`Refreshing Account: ${CURRENT_PROFILES[idx].name}`).start();
-                    cauldronLogger.info(`Refreshing Account: ${CURRENT_PROFILES[idx].name}`);
                     await processRefreshToken(C_IDENTIFIER, true);
-                    cauldronLogger.info(`Refreshed Account: ${CURRENT_PROFILES[idx].name}`);
                     spinner.succeed(`Refreshed Account: ${CURRENT_PROFILES[idx].name}`);
                 }
             } else {
                 C_IDENTIFIER = CURRENT_PROFILES[idx].value;
                 const spinner = ora(`Refreshing Account: ${CURRENT_PROFILES[idx].name}`).start();
-                cauldronLogger.info(`Refreshing Account: ${CURRENT_PROFILES[idx].name}`);
                 await processRefreshToken(C_IDENTIFIER, true);
-                cauldronLogger.info(`Refreshed Account: ${CURRENT_PROFILES[idx].name}`);
                 spinner.succeed(`Refreshed Account: ${CURRENT_PROFILES[idx].name}`);
             }
         } catch (e) {
