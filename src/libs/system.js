@@ -4,7 +4,7 @@ import {checkJVM} from '@jackcooperdev/cauldronengine/jvm';
 import {cauldronLogger} from '@jackcooperdev/cauldronengine/logger';
 import {getPackwizJVM} from '@jackcooperdev/cauldronengine/manifest';
 import {verifyInstallation} from '@jackcooperdev/cauldronengine/queue';
-import {grabStaticFileServer} from '@jackcooperdev/cauldronengine/files';
+
 import ora from 'ora';
 import {join} from 'node:path';
 import path from 'path';
@@ -44,7 +44,7 @@ async function downloadPackWizInBackground() {
         fileName += '.exe';
         extension = '.exe';
     }
-    const FILE_SERVER = await grabStaticFileServer();
+    const FILE_SERVER = "await grabStaticFileServer();"
     let downloadQueue = [
         {
             origin: `${FILE_SERVER}/packwiz/${CURRENT_OPERATING_SYSTEM}${extension}`,
