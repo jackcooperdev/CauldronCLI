@@ -1,4 +1,4 @@
-import {getEnginePath} from '../utils/enviromentManager.js';
+import {getEnginePath, getResourcePath} from '../utils/enviromentManager.js';
 import {getOperatingSystem} from '@jackcooperdev/cauldronengine/compat';
 import {checkJVM} from '@jackcooperdev/cauldronengine/jvm';
 import {cauldronLogger} from '@jackcooperdev/cauldronengine/logger';
@@ -47,14 +47,14 @@ async function downloadPackWizInBackground() {
     const FILE_SERVER = "await grabStaticFileServer();"
     let downloadQueue = [
         {
-            origin: `${FILE_SERVER}/packwiz/${CURRENT_OPERATING_SYSTEM}${extension}`,
-            destination: join(CAULDRON_PATH, 'packwiz'),
+            origin: `${getResourcePath()}/packwiz/${CURRENT_OPERATING_SYSTEM}${extension}`,
+            destination: join(CAULDRON_PATH,'config', 'packwiz'),
             sha1: 'NONE',
             fileName: fileName
         },
         {
-            origin: `${FILE_SERVER}/packwiz/packwiz-installer-bootstrap.jar`,
-            destination: join(CAULDRON_PATH, 'packwiz'),
+            origin: `${getResourcePath()}/packwiz/packwiz-installer-bootstrap.jar`,
+            destination: join(CAULDRON_PATH, 'config','packwiz'),
             sha1: 'c78e76a8655157f65caff298bc0d022f9a93bd57',
             fileName: 'packwiz-installer-bootstrap.jar'
         }
@@ -63,7 +63,7 @@ async function downloadPackWizInBackground() {
     await verifyInstallation(downloadQueue);
     spinner.succeed(`Retrieved Packwiz`);
     if (CURRENT_OPERATING_SYSTEM === 'linux') {
-        await shelljs.chmod('+x', join(CAULDRON_PATH, 'packwiz', fileName));
+        await shelljs.chmod('+x', join(CAULDRON_PATH, "config",'packwiz', fileName));
     }
 
 }
@@ -77,16 +77,34 @@ async function initializeCauldron() {
             fs.mkdirSync(CAULDRON_PATH);
         }
 
-        // Create folders and files
-        if (!fs.existsSync(path.join(CAULDRON_PATH, 'profiles.json'))) {
-            fs.writeFileSync(path.join(CAULDRON_PATH, 'profiles.json'), "{}");
+        if (!fs.existsSync(path.join(CAULDRON_PATH, 'config'))) {
+            fs.mkdirSync(path.join(CAULDRON_PATH, 'config'));
         }
-        if (!fs.existsSync(path.join(CAULDRON_PATH, 'offline-versions.json'))) {
+
+        if (!fs.existsSync(path.join(CAULDRON_PATH, "config/assets_installed.json"))) {
+            fs.writeFileSync(path.join(CAULDRON_PATH, "config/assets_installed.json"), "{}",);
+        }
+
+        // Check for jvm file
+        if (!fs.existsSync(path.join(CAULDRON_PATH, "config/jvm_installed.json"))) {
+            fs.writeFileSync(path.join(CAULDRON_PATH, "config/jvm_installed.json"), "{}");
+        }
+
+        // Check for a library installations file
+        if (!fs.existsSync(path.join(CAULDRON_PATH, "config/libs_installed.json"))) {
+            fs.writeFileSync(path.join(CAULDRON_PATH, "config/libs_installed.json"), "{}");
+        }
+
+        // Create folders and files
+        if (!fs.existsSync(path.join(CAULDRON_PATH, 'config/profiles.json'))) {
+            fs.writeFileSync(path.join(CAULDRON_PATH, 'config/profiles.json'), "{}");
+        }
+        if (!fs.existsSync(path.join(CAULDRON_PATH, 'config/offline-versions.json'))) {
             let offlineTemplate = {
                 "versions": {},
                 "configs": {}
             }
-            fs.writeFileSync(path.join(CAULDRON_PATH, 'offline-versions.json'), JSON.stringify(offlineTemplate));
+            fs.writeFileSync(path.join(CAULDRON_PATH, 'config/offline-versions.json'), JSON.stringify(offlineTemplate));
         }
         if (!fs.existsSync(path.join(CAULDRON_PATH, 'modpacks'))) {
             fs.mkdirSync(path.join(CAULDRON_PATH, 'modpacks'));
@@ -101,28 +119,7 @@ async function initializeCauldron() {
                 } else {
                     process.exit(0);
                 }
-
-            } else {
-                if (await checkInternet()) {
-                    await downloadJVMInBackground()
-                    await downloadPackWizInBackground()
-
-                }
             }
-
-            // if (mode === 0) {
-            //     // Refresh MC Accounts
-            //     let forceRefresh = true;
-            //     if (DEVELOPMENT_MODE) {
-            //         forceRefresh = false;
-            //     }
-            //     refreshAccounts(forceRefresh).then(function()  {
-            //         cauldronLogger.debug("Refreshed Accounts")
-            //     });
-            //     setInterval(refreshAccounts, 1800000);
-            //
-            // }
-
             resolve(true);
 
         } catch (e) {

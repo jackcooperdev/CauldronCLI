@@ -5,7 +5,7 @@ import shell from 'shelljs';
 import path from 'path';
 import fs from 'fs';
 import {spawn} from 'child_process';
-
+import { pathToFileURL } from 'url'
 // Cauldron Imports
 import {grabPath} from '@jackcooperdev/cauldronengine/compat';
 
@@ -160,8 +160,9 @@ function compareArrays(arr1, arr2) {
 async function installMods(packID) {
     return new Promise(async (resolve) => {
         const JVM_INSTALL = path.join(CAULDRON_PATH, 'jvm', 'java-runtime-alpha', 'bin', 'java');
-        const PACKWIZ_INSTALL = path.join(CAULDRON_PATH, 'packwiz', 'packwiz-installer-bootstrap.jar');
-        const PACK_PATH = `http://localhost:8778/modpacks/${packID}/pack.toml`;
+        const PACKWIZ_INSTALL = path.join(CAULDRON_PATH, 'config','packwiz', 'packwiz-installer-bootstrap.jar');
+        const PACK_PATH_RAW = path.join(CAULDRON_PATH, 'modpacks', packID, 'pack.toml');
+        const PACK_PATH = pathToFileURL(PACK_PATH_RAW).href ;
         const command = `-jar ${PACKWIZ_INSTALL} ${PACK_PATH}`;
         const child = spawn(JVM_INSTALL, command.split(" "), {cwd: path.join(CAULDRON_PATH, 'sessions', packID)});
         child.on('close', (code) => {

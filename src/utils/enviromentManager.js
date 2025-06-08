@@ -15,6 +15,8 @@ let PROD_ADDRESS = "api.cauldronapi.com";
 
 let LOCAL_PROTOCOL = "http"
 
+let RESOURCE_SERVER = "https://resources.cauldronmc.com";
+
 let DEVELOPMENT_MODE = false;
 
 let MODE = 0;
@@ -30,6 +32,7 @@ let defaultFile = {
     FORCE_MODE: FORCE_MODE,
     CAULDRON_PATH: CAULDRON_PATH,
     LOCAL_PROTOCOL: LOCAL_PROTOCOL,
+    RESOURCE_SERVER:RESOURCE_SERVER
 };
 
 
@@ -47,6 +50,7 @@ if (!fs.existsSync(path.join(os.homedir(), 'cauldroncli_admin.json'))) {
     FORCE_MODE = admin_file.FORCE_MODE;
     CAULDRON_PATH = admin_file.CAULDRON_PATH;
     process.env.CAULDRON_PATH = admin_file.CAULDRON_PATH;
+    process.env.RESOURCE_SERVER = admin_file.RESOURCE_SERVER;
 }
 
 
@@ -71,7 +75,7 @@ function grabPackwizLocation() {
     if (CURRENT_OPERATING_SYSTEM === 'windows') {
         fileName += '.exe';
     }
-    return path.join(CAULDRON_PATH, 'packwiz', fileName);
+    return path.join(CAULDRON_PATH,'config', 'packwiz', fileName);
 
 }
 
@@ -79,5 +83,9 @@ function getEnginePath() {
     return CAULDRON_PATH;
 }
 
+function getResourcePath() {
+    return RESOURCE_SERVER
+}
 
-export {grabServerAddress, DEVELOPMENT_MODE, grabPackwizLocation, getEnginePath};
+
+export {grabServerAddress, DEVELOPMENT_MODE, grabPackwizLocation, getEnginePath, getResourcePath};

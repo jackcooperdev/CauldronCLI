@@ -7,6 +7,11 @@ import ora from 'ora';
 import {cauldronLogger, startMCListening} from "@jackcooperdev/cauldronengine/logger";
 import {getAuthedUsers, refreshAccounts} from "../libs/minecraft-auth.js";
 import {launchMinecraft} from "../libs/launcher.js";
+import {getProfiles} from "../libs/profileManager.js";
+import path from "path";
+import {getEnginePath} from "../utils/enviromentManager.js";
+import fs from "fs";
+import {createModpack} from "../utils/modpack.js";
 
 export default {
     quick_launch: new Command('quick-launch')
@@ -15,7 +20,7 @@ export default {
         .option('-l, --mc_loader <type>', 'Minecraft Loader', 'vanilla')
         .option('-x, --mc_loader_version <type>', 'Minecraft Loader Version', undefined)
         .option('-m, --account <type>', 'Minecraft Account Identifier')
-        .option('-i, --install_only', "Install but dont launch", false)
+        .option('-i, --dry', "Install but dont launch", false)
         .option('-d, --debug', 'output extra debugging information')
         .action(async (options) => {
             try {
@@ -51,6 +56,59 @@ export default {
                     startMCListening();
                 }
                 const startLaunch = await launchMinecraft(`quick-${options.mc_loader}-${options.mc_version}`, mc_account.value, profileInfo, options.install_only);
+                cauldronLogger.info(`Started Session: ${startLaunch}`)
+            } catch (error) {
+                cauldronLogger.error(error);
+                process.exit(1);
+            }
+
+
+        }),
+    launch: new Command('launch')
+        .description('Launch a Minecraft Profile')
+        // .requiredOption('-v, --mc_version <type>', 'Minecraft Version')
+        // .option('-l, --mc_loader <type>', 'Minecraft Loader', 'vanilla')
+        // .option('-x, --mc_loader_version <type>', 'Minecraft Loader Version', undefined)
+        .option('-m, --account <type>', 'Minecraft Account Identifier')
+        .option('-i, --dry', "Install but dont launch", false)
+        .option('-d, --debug', 'output extra debugging information')
+        .action(async (options) => {
+            try {
+                if (options.debug) {
+                    cauldronLogger.level = 4;
+                }
+                let mc_account;
+                if (!options.account) {
+                    const currentAccounts = await getAuthedUsers();
+                    if (currentAccounts.length !== 0) {
+                        mc_account = currentAccounts[0];
+                    } else {
+                        cauldronLogger.error('No Accounts Logged In! Run cauldron add')
+                        process.exit(1);
+                    }
+                } else {
+                    mc_account = options.account;
+                }
+                cauldronLogger.debug(`Selected Account: ${mc_account.name}`);
+                cauldronLogger.info(`Starting Minecraft Version: ${options.mc_version} (${options.mc_loader}) with account ${mc_account.name}`);
+                await refreshAccounts();
+                let overrides = {}
+                let profiles = await getProfiles();
+                let profileInfo = profiles[0];
+                cauldronLogger.debug(profileInfo);
+                if (!options.install_only) {
+                    startMCListening();
+                }
+
+                // Handle Modded Pack
+                if (profileInfo.isModded) {
+                    if (!fs.existsSync(path.join(getEnginePath(),'modpacks',profileInfo._id))) {
+                        cauldronLogger.warn("Modpack not found downloading!")
+                        await createModpack(profileInfo)
+                    }
+                }
+
+                const startLaunch = await launchMinecraft(`${profileInfo._id}`, mc_account.value, profileInfo, options.install_only);
                 cauldronLogger.info(`Started Session: ${startLaunch}`)
             } catch (error) {
                 cauldronLogger.error(error);

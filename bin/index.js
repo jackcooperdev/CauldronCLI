@@ -10,6 +10,8 @@ import command2 from '../src/commands/login-to-api.js';
 import command3 from '../src/commands/manage-installation.js';
 import command4 from '../src/commands/minecraft-auth.js';
 import command5 from '../src/commands/launcher.js';
+import {initializeCauldron} from "../src/libs/system.js";
+import {downloadProfiles} from "../src/libs/profileManager.js";
 
 
 async function loadCommands() {
@@ -50,7 +52,6 @@ async function main() {
         .description('A CLI application built with Commander.js')
         .version('1.0.0')
     //.option('-d, --debug', 'output extra debugging information')
-
 
     await loadCommands(); // Load other commands
 

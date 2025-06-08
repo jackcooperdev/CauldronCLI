@@ -15,7 +15,7 @@ import {
     grabAccountInfo,
     getAuthedUsers,
     logoutUser,
-    refreshAccounts,
+    refreshAccounts, performMCLoginFlow,
 } from '../libs/minecraft-auth.js';
 
 import {startMCAccount} from '../libs/minecraft-auth.js';
@@ -26,28 +26,7 @@ export default {
     add_account: new Command('add')
         .description('Add Minecraft Account')
         .action(async () => {
-            let spinner = ora(`Waiting For Login...`)
-            try {
-                const AUTH_DATA = await startMCAccount();
-                let start = (process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open');
-                exec(start + ' ' + AUTH_DATA.data.url);
-                console.log(`✨  Opening Web Browser to Continue Login. If this does not work open this URL: ${AUTH_DATA.data.url}`)
-                spinner.start();
-                const sign_in = await waitForComplete(AUTH_DATA.data.code);
-                spinner.succeed(` Acquired Microsoft Refresh Token`);
-                spinner.start(`Writing To File...`)
-                await writeToAccountsFile(AUTH_DATA.data.code, {"refresh_token": encrypt(sign_in.token)});
-                spinner.succeed(` Written to File`);
-                spinner.start(`Logging into Minecraft...`)
-                await processRefreshToken(AUTH_DATA.data.code);
-                spinner.succeed(` Logged Into Minecraft`);
-                spinner.start(`Getting Account Info From Minecraft...`);
-                const account_info = await grabAccountInfo(AUTH_DATA.data.code);
-                spinner.succeed(`👋 Hello ${account_info.profile.username} Your account has been added!.`);
-            } catch (e) {
-                console.log(e)
-                spinner.fail('⚠️ An Unexpected error occurred. Please try again later.')
-            }
+            await performMCLoginFlow();
         }),
 
     remove_account: new Command('remove')

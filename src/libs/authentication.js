@@ -6,6 +6,10 @@ const AUTH0_CLIENT = 'nxoRS1sbJ0XqglOzlya6vIszrHUpkJum';
 import keytar from 'keytar';
 import os from 'os';
 import {grabServerAddress} from '../utils/enviromentManager.js';
+import {exec} from "child_process";
+import ora from "ora";
+import {initializeCauldron} from "./system.js";
+import {cauldronLogger} from "@jackcooperdev/cauldronengine/logger";
 
 const keytarAccount = os.userInfo().username;
 
@@ -96,6 +100,29 @@ async function waitForComplete(device_code) {
     })
 }
 
+async function performLoginFlow() {
+    try {
+        const AUTH_DATA = await startAuthFlow();
+        if (AUTH_DATA.login_needed) {
+            let start = (process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open');
+            exec(start + ' ' + AUTH_DATA.data.verification_uri_complete);
+            console.log(`🚨 Your Code is ${AUTH_DATA.data.user_code}. Please Ensure it matches the one displayed in browser`);
+            console.log(`Opening Web Browser to Continue Login. If this does not work open this URL: ${AUTH_DATA.data.verification_uri_complete}`)
+            const spinner = ora(`Waiting For Login...`).start();
+            await waitForComplete(AUTH_DATA.data.device_code);
+            spinner.succeed(" Done!")
+        }
+
+        const uData = await grabUserInfo();
+        console.log(`👋 Hello ${uData.name} (${uData.email}) You Are Logged Into CauldronAPI`);
+        await initializeCauldron();
+    } catch (e) {
+
+        cauldronLogger.error('⚠️ An Unexpected error occurred. Please try again later.');
+        cauldronLogger.error(e)
+    }
+}
+
 async function grabUserInfo() {
     return new Promise(async (resolve, reject) => {
         try {
@@ -175,7 +202,6 @@ async function refresh() {
             resolve(response);
         } catch (e) {
             console.log(e)
-            console.log(grabServerAddress());
             reject(e);
         }
     })
@@ -199,4 +225,4 @@ function logout() {
 }
 
 
-export {startAuthFlow, waitForComplete, grabUserInfo, logout, grabAccessToken};
+export {startAuthFlow, waitForComplete, grabUserInfo, logout, grabAccessToken, performLoginFlow};
