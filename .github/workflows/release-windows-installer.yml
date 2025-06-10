@@ -22,7 +22,8 @@ jobs:
 
       - name: Compile CLI with nexe
         run: |
-          npx nexe dist/cli.cjs -t windows-x64-20.10.0 -o cauldroncli-win.exe --build
+          "C:\Program Files\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat" && npx nexe dist/cli.cjs -t windows-x64-20.10.0 -o cauldroncli-win.exe --build
+        shell: cmd
 
       - name: Install Inno Setup
         run: |
