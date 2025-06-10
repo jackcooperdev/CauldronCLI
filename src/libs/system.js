@@ -8,7 +8,6 @@ import {verifyInstallation} from '@jackcooperdev/cauldronengine/queue';
 import ora from 'ora';
 import {join} from 'node:path';
 import path from 'path';
-import shelljs from 'shelljs';
 import fs from 'fs';
 import {checkInternet} from "@jackcooperdev/cauldronengine/online";
 import {rimraf} from 'rimraf';
@@ -63,7 +62,7 @@ async function downloadPackWizInBackground() {
     await verifyInstallation(downloadQueue);
     spinner.succeed(`Retrieved Packwiz`);
     if (CURRENT_OPERATING_SYSTEM === 'linux') {
-        await shelljs.chmod('+x', join(CAULDRON_PATH, "config",'packwiz', fileName));
+        await fs.chmodSync(path.join(CAULDRON_PATH, 'config', 'packwiz', fileName), 0o755);
     }
 
 }
@@ -73,6 +72,7 @@ async function downloadPackWizInBackground() {
 
 async function initializeCauldron() {
     return new Promise(async (resolve, reject) => {
+        try {
         if (!fs.existsSync(CAULDRON_PATH)) {
             fs.mkdirSync(CAULDRON_PATH);
         }
@@ -110,7 +110,6 @@ async function initializeCauldron() {
             fs.mkdirSync(path.join(CAULDRON_PATH, 'modpacks'));
         }
 
-        try {
             if (!fs.existsSync(path.join(CAULDRON_PATH, 'install'))) {
                 if (await checkInternet()) {
                     await downloadJVMInBackground();
@@ -123,6 +122,7 @@ async function initializeCauldron() {
             resolve(true);
 
         } catch (e) {
+            console.log(e)
             reject(e);
         }
     });

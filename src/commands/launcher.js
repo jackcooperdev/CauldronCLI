@@ -2,16 +2,17 @@
 
 import {Command} from 'commander';
 
-import {startAuthFlow, waitForComplete, grabUserInfo, logout} from '../libs/authentication.js';
-import ora from 'ora';
-import {cauldronLogger, startMCListening} from "@jackcooperdev/cauldronengine/logger";
+import {  cauldronLogger, startMCListening } from '@jackcooperdev/cauldronengine/logger';
+
+
 import {getAuthedUsers, refreshAccounts} from "../libs/minecraft-auth.js";
 import {launchMinecraft} from "../libs/launcher.js";
-import {getProfiles} from "../libs/profileManager.js";
+import {downloadProfiles, getProfiles} from "../libs/profileManager.js";
 import path from "path";
 import {getEnginePath} from "../utils/enviromentManager.js";
 import fs from "fs";
 import {createModpack} from "../utils/modpack.js";
+import {select, Separator} from '@inquirer/prompts';
 
 export default {
     quick_launch: new Command('quick-launch')
@@ -66,9 +67,7 @@ export default {
         }),
     launch: new Command('launch')
         .description('Launch a Minecraft Profile')
-        // .requiredOption('-v, --mc_version <type>', 'Minecraft Version')
-        // .option('-l, --mc_loader <type>', 'Minecraft Loader', 'vanilla')
-        // .option('-x, --mc_loader_version <type>', 'Minecraft Loader Version', undefined)
+        .option('-p, --profile <type>', 'Profile ID', undefined)
         .option('-m, --account <type>', 'Minecraft Account Identifier')
         .option('-i, --dry', "Install but dont launch", false)
         .option('-d, --debug', 'output extra debugging information')
@@ -90,26 +89,73 @@ export default {
                     mc_account = options.account;
                 }
                 cauldronLogger.debug(`Selected Account: ${mc_account.name}`);
-                cauldronLogger.info(`Starting Minecraft Version: ${options.mc_version} (${options.mc_loader}) with account ${mc_account.name}`);
+
                 await refreshAccounts();
+                await downloadProfiles();
                 let overrides = {}
                 let profiles = await getProfiles();
-                let profileInfo = profiles[0];
-                cauldronLogger.debug(profileInfo);
-                if (!options.install_only) {
-                    startMCListening();
-                }
+                let profileOptions = [];
+                let answer;
+                if (!options.profile) {
+                    for (let idx in profiles) {
+                        profileOptions.push({"name":`${profiles[idx].profileName} (${profiles[idx].options.version}-${profiles[idx].options.loader})`, "value":profiles[idx]})
+                    }
 
-                // Handle Modded Pack
-                if (profileInfo.isModded) {
-                    if (!fs.existsSync(path.join(getEnginePath(),'modpacks',profileInfo._id))) {
-                        cauldronLogger.warn("Modpack not found downloading!")
-                        await createModpack(profileInfo)
+                    profileOptions.push({"name": "Exit", value: false})
+                     answer = await select({
+                        message: 'Select a Profile to launch',
+                        choices: profileOptions
+                    });
+                } else {
+                    for (let idx in profiles) {
+                        if (profiles[idx]._id === options.profile) {
+                            answer = profiles[idx]
+                        }
                     }
                 }
 
-                const startLaunch = await launchMinecraft(`${profileInfo._id}`, mc_account.value, profileInfo, options.install_only);
-                cauldronLogger.info(`Started Session: ${startLaunch}`)
+                if (answer) {
+                    let profileInfo = answer;
+
+                    // Check Profile History
+
+                    if (!fs.existsSync(path.join(getEnginePath(), 'config', 'local_profiles.json'))) {
+                        fs.writeFileSync(path.join(getEnginePath(), 'config', 'local_profiles.json'),'{}')
+                    }
+
+                    let localProfiles = JSON.parse(fs.readFileSync(path.join(getEnginePath(), 'config', 'local_profiles.json')).toString());
+                    let modpackUpdate = false;
+
+                    if (localProfiles[profileInfo._id]) {
+                        if (localProfiles[profileInfo._id] !== profileInfo.updatedAt) {
+                            modpackUpdate = true;
+                            localProfiles[profileInfo._id] = profileInfo.updatedAt;
+                        }
+                    } else {
+                        // Assume First Time Boot of Profile
+                        localProfiles[profileInfo._id] = profileInfo.updatedAt;
+                    }
+                    modpackUpdate = true;
+                    fs.writeFileSync(path.join(getEnginePath(), 'config', 'local_profiles.json'),JSON.stringify(localProfiles, null, 2));
+
+                    cauldronLogger.info(`Starting Minecraft Version: ${profileInfo.options.version} (${profileInfo.options.loader}) with account ${mc_account.name}`);
+                    cauldronLogger.debug(profileInfo);
+                    if (!options.install_only) {
+                        startMCListening();
+                    }
+
+                    // Handle Modded Pack
+                    if (profileInfo.isModded) {
+                        if (!fs.existsSync(path.join(getEnginePath(),'modpacks',profileInfo._id)) || modpackUpdate) {
+                            cauldronLogger.warn("Modpack not found downloading!")
+                            await createModpack(profileInfo)
+                        }
+                    }
+
+                    const startLaunch = await launchMinecraft(`${profileInfo._id}`, mc_account.value, profileInfo, options.install_only);
+                    cauldronLogger.info(`Started Session: ${startLaunch}`)
+                }
+
             } catch (error) {
                 cauldronLogger.error(error);
                 process.exit(1);

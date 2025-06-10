@@ -1,6 +1,5 @@
 // This Controller is in charge of launching the minecraft instance
 // Dependencies
-import shell from 'shelljs';
 
 import path from 'path';
 import fs from 'fs';
@@ -50,9 +49,14 @@ async function launchMinecraft(sessionID, mcAccountID, profileInfo, installOnly)
             }
 
             let overrides = profileInfo.overides;
-
             // Create Session Folder
-            shell.mkdir('-p', path.join(CAULDRON_PATH, 'sessions', sessionID));
+            if (!fs.existsSync(path.join(CAULDRON_PATH, 'sessions'))) {
+                fs.mkdirSync(path.join(CAULDRON_PATH, 'sessions'));
+            }
+            if (!fs.existsSync(path.join(CAULDRON_PATH, 'sessions',sessionID))) {
+                fs.mkdirSync(path.join(CAULDRON_PATH, 'sessions', sessionID));
+            }
+
 
             if (!overrides) {
                 overrides = {};
@@ -130,6 +134,7 @@ async function launchMinecraft(sessionID, mcAccountID, profileInfo, installOnly)
                 resolve(launchMinecraftSession);
             }
         } catch (e) {
+            console.log(e)
             reject(e);
         }
     });

@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import {jwtDecode} from 'jwt-decode';
 
 const AUTH0_CLIENT = 'nxoRS1sbJ0XqglOzlya6vIszrHUpkJum';
-import keytar from 'keytar';
+import * as keytar from '../utils/storageManager.js';
 import os from 'os';
 import {grabServerAddress} from '../utils/enviromentManager.js';
 import {exec} from "child_process";

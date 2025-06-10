@@ -11,7 +11,7 @@ import {grabPath, getOperatingSystem} from '@jackcooperdev/cauldronengine/compat
 // API Locations
 
 let LOCAL_ADDRESS = "localhost:3000"
-let PROD_ADDRESS = "api.cauldronapi.com";
+let PROD_ADDRESS = "api.cauldronmc.com";
 
 let LOCAL_PROTOCOL = "http"
 
