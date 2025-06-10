@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-windows:
-    runs-on: self-hosted
+    runs-on: windows-latest
 
     steps:
       - name: Checkout repository
@@ -20,10 +20,16 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Compile CLI with nexe
+      - name: Download CLI binary from release
         run: |
-          "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat" && npx nexe dist/cli.cjs -t windows-x64-20.10.0 -o cauldroncli-win.exe --build
-        shell: cmd
+          $tag = "${{ github.ref_name }}"
+          $url = "https://github.com/${{ github.repository }}/releases/download/$tag/cauldroncli-win.exe"
+          Invoke-WebRequest -Uri $url -OutFile cauldroncli-win.exe
+      - name: Prepare files for installer
+        run: |
+          mkdir out
+          Move-Item cauldroncli-win.exe out\cauldroncli.exe
+
 
       - name: Install Inno Setup
         run: |
