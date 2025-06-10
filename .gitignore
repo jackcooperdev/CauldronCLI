@@ -1,5 +1,5 @@
 node_modules
 dist
-compile/out
-compile/Output
+compile/out/*
+compile/Output/*
 compile/*.exe
