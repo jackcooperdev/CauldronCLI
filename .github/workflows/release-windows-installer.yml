@@ -22,7 +22,7 @@ jobs:
 
       - name: Compile CLI with nexe
         run: |
-          npx nexe dist/cli.cjs -o out/cauldroncli.exe
+          npx nexe dist/cli.cjs -t windows-x64-20.10.0 -o cauldroncli-win.exe
 
       - name: Install Inno Setup
         run: |
