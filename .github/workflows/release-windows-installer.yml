@@ -1,0 +1,46 @@
+name: Build and Upload Windows Installer
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Compile CLI with nexe
+        run: |
+          npx nexe dist/cli.cjs -o out/cauldroncli.exe
+
+      - name: Install Inno Setup
+        run: |
+          choco install innosetup --yes
+
+      - name: Set version in Inno Setup script
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag.TrimStart("v")
+          (Get-Content cauldron_installer.iss) -replace 'AppVersion=.*', "AppVersion=$version" | Set-Content cauldron_installer.iss
+
+      - name: Build Installer
+        run: |
+          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" cauldron_installer.iss
+
+      - name: Upload installer to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: cauldron-installer.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
