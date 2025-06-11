@@ -1,9 +1,8 @@
-import {sendToServer} from "../utils/apiCommunication.js";
-import {cauldronLogger} from "@jackcooperdev/cauldronengine/logger";
-import path from "path";
-import {getEnginePath} from "../utils/enviromentManager.js";
-import fs from "fs";
-
+const { sendToServer } = require("../utils/apiCommunication.js");
+const { cauldronLogger } = require("@jackcooperdev/cauldronengine/logger");
+const path = require("path");
+const { getEnginePath } = require("../utils/enviromentManager.js");
+const fs = require("fs");
 
 async function downloadProfiles() {
     try {
@@ -29,4 +28,4 @@ async function getProfiles() {
 
 
 
-export  { downloadProfiles,getProfiles };
+module.exports =  { downloadProfiles,getProfiles };

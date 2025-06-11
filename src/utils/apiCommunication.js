@@ -2,14 +2,14 @@
 
 
 // Dependencies
-import fetch from 'node-fetch';
+const fetch = require('node-fetch');
 
-import {cauldronLogger} from '@jackcooperdev/cauldronengine/logger';
-import {grabServerAddress} from './enviromentManager.js';
-import {grabAccessToken} from '../libs/authentication.js';
+const { cauldronLogger } = require('@jackcooperdev/cauldronengine/logger');
+const { grabServerAddress } = require('./enviromentManager.js');
+const { grabAccessToken } = require('../libs/authentication.js');
 
 // Cauldron Imports
-import {checkInternet} from '@jackcooperdev/cauldronengine/online';
+const { checkInternet } = require('@jackcooperdev/cauldronengine/online');
 
 
 // Set Constants
@@ -92,4 +92,4 @@ async function isAPIOnline() {
 }
 
 
-export {sendToServer, isAPIOnline};
+module.exports = {sendToServer, isAPIOnline};

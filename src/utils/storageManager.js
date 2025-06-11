@@ -1,8 +1,7 @@
-import fs from 'fs/promises';
-import crypto from 'crypto';
-import os from 'os';
-import path from 'path';
-
+const fs = require('fs').promises; // For fs/promises
+const crypto = require('crypto');
+const os = require('os');
+const path = require('path');
 const ALGORITHM = 'aes-256-gcm';
 const KEY = crypto.scryptSync('your-strong-password-here', 'salt', 32); // Use a secure key here
 const IV_LENGTH = 12; // AES GCM nonce length
@@ -40,14 +39,14 @@ function decrypt(data) {
     return decrypted.toString('utf8');
 }
 
-export async function setPassword(service, account, password) {
+async function setPassword(service, account, password) {
     const storage = await readStorage();
     if (!storage[service]) storage[service] = {};
     storage[service][account] = encrypt(password);
     await writeStorage(storage);
 }
 
-export async function getPassword(service, account) {
+async function getPassword(service, account) {
     const storage = await readStorage();
     if (!storage[service] || !storage[service][account]) return null;
     try {
@@ -57,10 +56,12 @@ export async function getPassword(service, account) {
     }
 }
 
-export async function deletePassword(service, account) {
+ async function deletePassword(service, account) {
     const storage = await readStorage();
     if (storage[service] && storage[service][account]) {
         delete storage[service][account];
         await writeStorage(storage);
     }
 }
+
+module.exports = {setPassword,getPassword,deletePassword};

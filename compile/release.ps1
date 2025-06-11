@@ -10,7 +10,7 @@ if (-not $Tag) {
 $BinaryName = "cauldroncli.exe"
 $InstallerName = "cauldron-installer.exe"
 $Target = "windows-x64-20.10.0"
-$EntryFile = "../dist/cli.cjs"
+$EntryFile = "../dist/cli.cjs" # This is likely the output of your build.js
 $InstallerScript = "cauldron_installer.iss"
 
 # Check for required tools
@@ -29,15 +29,20 @@ if (-not (Test-Path $InnoSetupPath)) {
     exit 1
 }
 
-# Check entry file exists
+# --- ADDED STEP: Run your build.js script ---
+Write-Host "Running node build.js to prepare entry file..."
+node ../build.js
+# ---------------------------------------------
+
+# Check entry file exists (this check remains important after build.js)
 if (-not (Test-Path $EntryFile)) {
-    Write-Host "ERROR: Entry file $EntryFile not found. Run your build step first."
+    Write-Host "ERROR: Entry file $EntryFile not found. Ensure build.js creates it."
     exit 1
 }
 
 # Build binary with nexe
 Write-Host "Building $BinaryName with nexe..."
-npx nexe $EntryFile -t $Target -o $BinaryName --build
+npx --yes nexe@5.0.0-beta.4 $EntryFile -t $Target -o $BinaryName --build
 
 # Create git tag and push if it doesn't exist
 $tagExists = git tag --list $Tag

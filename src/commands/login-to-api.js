@@ -1,14 +1,11 @@
 // noinspection JSUnresolvedReference
 
-import {Command} from 'commander';
+const { Command } = require('commander');
 
-import {startAuthFlow, waitForComplete, grabUserInfo, logout, performLoginFlow} from '../libs/authentication.js';
-import ora from 'ora';
-import {cauldronLogger} from "@jackcooperdev/cauldronengine/logger";
-import {exec} from 'child_process';
-import {initializeCauldron} from "../libs/system.js";
+const { logout, performLoginFlow } = require('../libs/authentication.js');
 
-export default {
+
+module.exports = {
     login_to_api: new Command('login')
         .description('Login To CauldronAPI')
         .action(async () => {
@@ -24,7 +21,7 @@ export default {
     test: new Command('test')
         .description('Logout from CauldronAPI')
         .option('-d, --debug', 'output extra debugging information')
-        .action(async (options) => {
+        .action(async () => {
             console.log('Empty Test')
         }),
 };

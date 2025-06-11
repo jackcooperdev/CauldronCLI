@@ -1,15 +1,15 @@
-import qs from 'qs';
-import fetch from 'node-fetch';
-import {jwtDecode} from 'jwt-decode';
+const qs = require('qs');
+const fetch = require('node-fetch');
+const { jwtDecode } = require('jwt-decode');
 
 const AUTH0_CLIENT = 'nxoRS1sbJ0XqglOzlya6vIszrHUpkJum';
-import * as keytar from '../utils/storageManager.js';
-import os from 'os';
-import {grabServerAddress} from '../utils/enviromentManager.js';
-import {exec} from "child_process";
-import ora from "ora";
-import {initializeCauldron} from "./system.js";
-import {cauldronLogger} from "@jackcooperdev/cauldronengine/logger";
+const keytar = require('../utils/storageManager.js'); // This was a namespace import, so it becomes a direct require
+const os = require('os');
+const { grabServerAddress } = require('../utils/enviromentManager.js');
+const { exec } = require("child_process");
+const ora = require("ora-classic");
+const { initializeCauldron } = require("./system.js");
+const { cauldronLogger } = require('@jackcooperdev/cauldronengine/logger');
 
 const keytarAccount = os.userInfo().username;
 
@@ -124,7 +124,7 @@ async function performLoginFlow() {
 }
 
 async function grabUserInfo() {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async (resolve) => {
         try {
             const accessToken = await grabAccessToken();
             let config = {
@@ -209,7 +209,7 @@ async function refresh() {
 }
 
 function logout() {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async () => {
         if ((await keytar.getPassword('cauldroncli', keytarAccount)) != null) {
             // noinspection ES6MissingAwait
             keytar.deletePassword('cauldroncli', keytarAccount);
@@ -225,4 +225,4 @@ function logout() {
 }
 
 
-export {startAuthFlow, waitForComplete, grabUserInfo, logout, grabAccessToken, performLoginFlow};
+module.exports = {startAuthFlow, waitForComplete, grabUserInfo, logout, grabAccessToken, performLoginFlow};

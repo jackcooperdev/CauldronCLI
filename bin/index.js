@@ -1,17 +1,13 @@
 #!/usr/bin/env node
-import {Command} from 'commander';
-import 'fs';
-import path from 'path';
+const { Command } = require('commander');
 
 const program = new Command();
 
-import command1 from '../src/commands/websockets.js';
-import command2 from '../src/commands/login-to-api.js';
-import command3 from '../src/commands/manage-installation.js';
-import command4 from '../src/commands/minecraft-auth.js';
-import command5 from '../src/commands/launcher.js';
-import {initializeCauldron} from "../src/libs/system.js";
-import {downloadProfiles} from "../src/libs/profileManager.js";
+const command1 = require('../src/commands/websockets.js');
+const command2 = require('../src/commands/login-to-api.js');
+const command3 = require('../src/commands/manage-installation.js');
+const command4 = require('../src/commands/minecraft-auth.js');
+const command5 = require('../src/commands/launcher.js');
 
 
 async function loadCommands() {
