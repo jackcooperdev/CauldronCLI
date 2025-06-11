@@ -3,7 +3,6 @@ const path = require('path');
 
 const fs = require('fs');
 const os = require('node:os');
-const { cauldronLogger } = require('@jackcooperdev/cauldronengine/logger');
 const { grabPath, getOperatingSystem } = require('@jackcooperdev/cauldronengine/compat');
 
 // Default Values
@@ -19,7 +18,6 @@ let RESOURCE_SERVER = "https://resources.cauldronmc.com";
 
 let DEVELOPMENT_MODE = false;
 
-let MODE = 0;
 let FORCE_MODE = false;
 
 let CAULDRON_PATH = grabPath();

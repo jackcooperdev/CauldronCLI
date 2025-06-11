@@ -2,13 +2,11 @@
 
 const { Command } = require('commander');
 const { resetCauldron, initializeCauldron } = require('../libs/system.js');
-const loginToApi = require("./login-to-api.js");
 const { performLoginFlow } = require("../libs/authentication.js");
 const { downloadProfiles } = require("../libs/profileManager.js");
 const { confirm } = require('@inquirer/prompts');
 const { performMCLoginFlow } = require("../libs/minecraft-auth.js");
 
-let enabledDebugNamespaces = [];
 module.exports = {
     reset: new Command('reset')
         .description('Reset Cauldron Installation')

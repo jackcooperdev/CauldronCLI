@@ -124,7 +124,7 @@ async function performLoginFlow() {
 }
 
 async function grabUserInfo() {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async (resolve) => {
         try {
             const accessToken = await grabAccessToken();
             let config = {
@@ -209,7 +209,7 @@ async function refresh() {
 }
 
 function logout() {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async () => {
         if ((await keytar.getPassword('cauldroncli', keytarAccount)) != null) {
             // noinspection ES6MissingAwait
             keytar.deletePassword('cauldroncli', keytarAccount);

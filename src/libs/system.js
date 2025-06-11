@@ -43,7 +43,6 @@ async function downloadPackWizInBackground() {
         fileName += '.exe';
         extension = '.exe';
     }
-    const FILE_SERVER = "await grabStaticFileServer();"
     let downloadQueue = [
         {
             origin: `${getResourcePath()}/packwiz/${CURRENT_OPERATING_SYSTEM}${extension}`,

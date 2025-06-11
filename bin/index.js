@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 const { Command } = require('commander');
-const fs = require('fs');
-const path = require('path');
 
 const program = new Command();
 
@@ -10,8 +8,7 @@ const command2 = require('../src/commands/login-to-api.js');
 const command3 = require('../src/commands/manage-installation.js');
 const command4 = require('../src/commands/minecraft-auth.js');
 const command5 = require('../src/commands/launcher.js');
-const { initializeCauldron } = require("../src/libs/system.js");
-const { downloadProfiles } = require("../src/libs/profileManager.js");
+
 
 async function loadCommands() {
     // Add commands from each imported module

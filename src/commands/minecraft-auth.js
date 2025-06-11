@@ -2,26 +2,16 @@
 
 const { Command } = require('commander');
 
-const ora = require('ora-classic');
-const { resetCauldron } = require('../libs/system.js');
-const { sendToServer } = require('../utils/apiCommunication.js');
-const { grabServerAddress } = require('../utils/enviromentManager.js');
+
 
 const {
-    waitForComplete,
-    writeToAccountsFile,
-    encrypt,
-    processRefreshToken,
-    grabAccountInfo,
     getAuthedUsers,
     logoutUser,
     refreshAccounts,
     performMCLoginFlow,
 } = require('../libs/minecraft-auth.js');
 
-const { startMCAccount } = require('../libs/minecraft-auth.js');
-const { select, Separator } = require('@inquirer/prompts');
-const { exec } = require('child_process');
+const { select } = require('@inquirer/prompts');
 
 module.exports = {
     add_account: new Command('add')

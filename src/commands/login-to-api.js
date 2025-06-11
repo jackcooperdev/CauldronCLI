@@ -2,7 +2,7 @@
 
 const { Command } = require('commander');
 
-const { startAuthFlow, waitForComplete, grabUserInfo, logout, performLoginFlow } = require('../libs/authentication.js');
+const { logout, performLoginFlow } = require('../libs/authentication.js');
 
 
 module.exports = {

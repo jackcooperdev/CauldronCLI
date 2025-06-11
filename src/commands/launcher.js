@@ -10,7 +10,7 @@ const path = require("path");
 const { getEnginePath } = require("../utils/enviromentManager.js");
 const fs = require("fs");
 const { createModpack } = require("../utils/modpack.js");
-const { select, Separator } = require('@inquirer/prompts');
+const { select } = require('@inquirer/prompts');
 
 module.exports = {
     quick_launch: new Command('quick-launch')
@@ -90,7 +90,6 @@ module.exports = {
 
                 await refreshAccounts();
                 await downloadProfiles();
-                let overrides = {}
                 let profiles = await getProfiles();
                 let profileOptions = [];
                 let answer;
@@ -133,7 +132,6 @@ module.exports = {
                         // Assume First Time Boot of Profile
                         localProfiles[profileInfo._id] = profileInfo.updatedAt;
                     }
-                    modpackUpdate = true;
                     fs.writeFileSync(path.join(getEnginePath(), 'config', 'local_profiles.json'),JSON.stringify(localProfiles, null, 2));
 
                     cauldronLogger.info(`Starting Minecraft Version: ${profileInfo.options.version} (${profileInfo.options.loader}) with account ${mc_account.name}`);
