@@ -1,13 +1,13 @@
 // noinspection JSUnresolvedReference
 
-import {Command} from 'commander';
+const { Command } = require('commander');
 
-import ora from 'ora';
-import {resetCauldron} from '../libs/system.js';
-import {sendToServer} from '../utils/apiCommunication.js';
-import {grabServerAddress} from '../utils/enviromentManager.js';
+const ora = require('ora-classic');
+const { resetCauldron } = require('../libs/system.js');
+const { sendToServer } = require('../utils/apiCommunication.js');
+const { grabServerAddress } = require('../utils/enviromentManager.js');
 
-import {
+const {
     waitForComplete,
     writeToAccountsFile,
     encrypt,
@@ -15,14 +15,15 @@ import {
     grabAccountInfo,
     getAuthedUsers,
     logoutUser,
-    refreshAccounts, performMCLoginFlow,
-} from '../libs/minecraft-auth.js';
+    refreshAccounts,
+    performMCLoginFlow,
+} = require('../libs/minecraft-auth.js');
 
-import {startMCAccount} from '../libs/minecraft-auth.js';
-import {select, Separator} from '@inquirer/prompts';
-import {exec} from 'child_process';
+const { startMCAccount } = require('../libs/minecraft-auth.js');
+const { select, Separator } = require('@inquirer/prompts');
+const { exec } = require('child_process');
 
-export default {
+module.exports = {
     add_account: new Command('add')
         .description('Add Minecraft Account')
         .action(async () => {

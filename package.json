@@ -1,13 +1,8 @@
 {
   "name": "cauldroncli",
   "version": "0.0.1",
-  "scripts": {
-    "build:win": "node ./build.js && npx nexe dist/cli.cjs -t windows-x64-20.10.0 -o dist/cauldroncli-win.exe --build"
-  },
-  "type": "module",
-  "bin": {
-    "cauldron": "./bin/index.mjs"
-  },
+  "scripts": {},
+  "type": "commonjs",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jackcooperdev/CauldronCLI.git"
@@ -25,26 +20,20 @@
     "@jackcooperdev/cauldronauthentication": "file:../CauldronAuthentication",
     "@jackcooperdev/cauldronengine": "file:../CauldronEngine",
     "@jackcooperdev/packwiz_js": "file:../packwiz_js",
-    "aes256": "^1.1.0",
-    "chalk": "^4.1.2",
     "commander": "^13.1.0",
     "cryptr": "^6.3.0",
-    "debug": "^4.4.0",
     "esbuild": "^0.25.2",
-    "figlet": "^1.8.0",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
     "node-fetch": "^2.7.0",
-    "ora": "^8.2.0",
+    "ora-classic": "^5.4.2",
     "qs": "^6.14.0",
     "rimraf": "^6.0.1",
     "ws": "^8.18.1"
   },
   "devDependencies": {
-    "@types/figlet": "~1.7.0",
-    "@types/qs": "~6.9.18",
-    "@types/shelljs": "~0.8.15",
-    "@types/ws": "~8.18.1",
-    "nexe": "^5.0.0-beta.4"
+    "@types/jsonwebtoken": "~9.0.9",
+    "@types/qs": "~6.14.0",
+    "@types/ws": "~8.18.1"
   }
 }

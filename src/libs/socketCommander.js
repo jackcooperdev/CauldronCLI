@@ -7,4 +7,4 @@ async function handlePing() {
 }
 
 
-export {handlePing};
+module.exports = {handlePing};

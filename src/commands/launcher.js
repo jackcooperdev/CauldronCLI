@@ -1,20 +1,18 @@
 // noinspection JSUnresolvedReference
+const { Command } = require('commander');
 
-import {Command} from 'commander';
+const { cauldronLogger, startMCListening } = require('@jackcooperdev/cauldronengine/logger');
 
-import {  cauldronLogger, startMCListening } from '@jackcooperdev/cauldronengine/logger';
+const { getAuthedUsers, refreshAccounts } = require("../libs/minecraft-auth.js");
+const { launchMinecraft } = require("../libs/launcher.js");
+const { downloadProfiles, getProfiles } = require("../libs/profileManager.js");
+const path = require("path");
+const { getEnginePath } = require("../utils/enviromentManager.js");
+const fs = require("fs");
+const { createModpack } = require("../utils/modpack.js");
+const { select, Separator } = require('@inquirer/prompts');
 
-
-import {getAuthedUsers, refreshAccounts} from "../libs/minecraft-auth.js";
-import {launchMinecraft} from "../libs/launcher.js";
-import {downloadProfiles, getProfiles} from "../libs/profileManager.js";
-import path from "path";
-import {getEnginePath} from "../utils/enviromentManager.js";
-import fs from "fs";
-import {createModpack} from "../utils/modpack.js";
-import {select, Separator} from '@inquirer/prompts';
-
-export default {
+module.exports = {
     quick_launch: new Command('quick-launch')
         .description('Quick Launch a Minecraft Instance')
         .requiredOption('-v, --mc_version <type>', 'Minecraft Version')

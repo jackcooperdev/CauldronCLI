@@ -1,7 +1,7 @@
-import path from "path";
-import {verifyInstallation} from "@jackcooperdev/cauldronengine/queue";
-import {getEnginePath, grabPackwizLocation} from "./enviromentManager.js";
-import {createPack, importFromCurseforge, importFromModrinth} from "@jackcooperdev/packwiz_js";
+const path = require("path");
+const { verifyInstallation } = require("@jackcooperdev/cauldronengine/queue");
+const { getEnginePath, grabPackwizLocation } = require("./enviromentManager.js");
+const { createPack, importFromCurseforge, importFromModrinth } = require("@jackcooperdev/packwiz_js");
 
 const CAULDRON_PATH = getEnginePath();
 let modpackProviders = {
@@ -79,4 +79,4 @@ async function createModrinthPack(profileInfo) {
     })
 }
 
-export {createModpack};
+module.exports = {createModpack};

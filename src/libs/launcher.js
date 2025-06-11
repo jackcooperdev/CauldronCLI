@@ -1,18 +1,19 @@
 // This Controller is in charge of launching the minecraft instance
 // Dependencies
 
-import path from 'path';
-import fs from 'fs';
-import {spawn} from 'child_process';
-import { pathToFileURL } from 'url'
-// Cauldron Imports
-import {grabPath} from '@jackcooperdev/cauldronengine/compat';
+const path = require('path');
+const fs = require('fs');
+const { spawn } = require('child_process');
+const { pathToFileURL } = require('url'); // This is an ESM utility, but the 'url' module exists in CJS
 
-import {getModList} from '@jackcooperdev/packwiz_js';
-import {grabAccountInfo} from './minecraft-auth.js';
-import {launchGame} from '@jackcooperdev/cauldronengine/launcher';
-import {whatIsThis, checkManifest} from '@jackcooperdev/cauldronengine/manifest';
-import {cauldronLogger} from "@jackcooperdev/cauldronengine/logger";
+// Cauldron Imports
+const { grabPath } = require('@jackcooperdev/cauldronengine/compat');
+
+const { getModList } = require('@jackcooperdev/packwiz_js');
+const { grabAccountInfo } = require('./minecraft-auth.js');
+const { launchGame } = require('@jackcooperdev/cauldronengine/launcher');
+const { whatIsThis, checkManifest } = require('@jackcooperdev/cauldronengine/manifest');
+const { cauldronLogger } = require("@jackcooperdev/cauldronengine/logger");
 // Internal Imports
 
 
@@ -181,4 +182,4 @@ async function installMods(packID) {
 }
 
 
-export {launchMinecraft};
+module.exports = {launchMinecraft};

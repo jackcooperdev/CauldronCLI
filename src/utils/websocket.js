@@ -1,5 +1,5 @@
-import { WebSocketServer } from 'ws';
-import {handlePing} from "../libs/socketCommander.js";
+const { WebSocketServer } = require('ws');
+const { handlePing } = require("../libs/socketCommander.js");
 const port = process.argv[2] ? parseInt(process.argv[2], 10) : 8080;
 const server = new WebSocketServer({
     port: port
