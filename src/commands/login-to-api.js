@@ -21,7 +21,7 @@ module.exports = {
     test: new Command('test')
         .description('Logout from CauldronAPI')
         .option('-d, --debug', 'output extra debugging information')
-        .action(async (options) => {
+        .action(async () => {
             console.log('Empty Test')
         }),
 };
