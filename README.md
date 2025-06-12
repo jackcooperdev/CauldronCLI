@@ -22,7 +22,7 @@ project follows the license guidelines.
 
 2. Follow Setup Guide [here](/cli/setup)
 
-## Using CauldronEngine
+## Using CauldronCLI
 
 List of Commands Can be found [here](https://docs.cauldronmc.com/cli/introduction)
 
