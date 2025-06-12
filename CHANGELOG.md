@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Added
+- Graceful CTRL-C Handling
+- Profile Creation
+- Mod Managment (Add-Only For Now)
+
+## Removed
+- Test Command
+
 ## [v0.0.2] - 12-06-2025
 
 ## Added

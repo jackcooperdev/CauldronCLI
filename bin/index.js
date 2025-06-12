@@ -8,6 +8,7 @@ const command2 = require('../src/commands/login-to-api.js');
 const command3 = require('../src/commands/manage-installation.js');
 const command4 = require('../src/commands/minecraft-auth.js');
 const command5 = require('../src/commands/launcher.js');
+const command6 = require('../src/commands/profile.js');
 
 const pkg = require('../package.json');
 
@@ -41,6 +42,11 @@ async function loadCommands() {
             program.addCommand(command5[commandName]);
         }
     }
+    for (const commandName in command6) {
+        if (command6[commandName] instanceof Command) {
+            program.addCommand(command6[commandName]);
+        }
+    }
 }
 
 async function main() {
@@ -55,5 +61,19 @@ async function main() {
     program.parse(process.argv);
 
 }
+if (process.platform === "win32") {
+    var rl = require("readline").createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
 
+    rl.on("SIGINT", function () {
+        process.emit("SIGINT");
+    });
+}
+
+process.on("SIGINT", function () {
+    //graceful shutdown
+    process.exit();
+});
 main();
