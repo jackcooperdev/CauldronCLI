@@ -88,7 +88,7 @@ async function waitForComplete(device_code) {
                     clearInterval(tryAuth);
                     let responseData = await response.json();
                     // noinspection JSIgnoredPromiseFromCall,ES6MissingAwait
-                    keytar.setPassword('cauldroncli', keytarAccount, responseData.refresh_token);
+                    await keytar.setPassword('cauldroncli', keytarAccount, responseData.refresh_token);
                     resolve(responseData);
                 }
             } catch (e) {
@@ -163,6 +163,7 @@ async function grabAccessToken() {
             }
             // Check For Refresh Token
             if ((await keytar.getPassword('cauldroncli', keytarAccount)) === null) {
+                console.log(keytarAccount)
                 console.log(`🚨 You have not logged in please log in using the login command!`)
                 process.exit(1);
             }

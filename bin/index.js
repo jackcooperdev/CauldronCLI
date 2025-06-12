@@ -9,6 +9,7 @@ const command3 = require('../src/commands/manage-installation.js');
 const command4 = require('../src/commands/minecraft-auth.js');
 const command5 = require('../src/commands/launcher.js');
 
+const pkg = require('../package.json');
 
 async function loadCommands() {
     // Add commands from each imported module
@@ -44,9 +45,9 @@ async function loadCommands() {
 
 async function main() {
     program
-        .name('my-cli')
-        .description('A CLI application built with Commander.js')
-        .version('1.0.0')
+        .name('cauldroncli')
+        .description('CLI For Managing Minecraft')
+        .version(pkg.version)
     //.option('-d, --debug', 'output extra debugging information')
 
     await loadCommands(); // Load other commands

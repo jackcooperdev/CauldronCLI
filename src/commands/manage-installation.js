@@ -6,6 +6,7 @@ const { performLoginFlow } = require("../libs/authentication.js");
 const { downloadProfiles } = require("../libs/profileManager.js");
 const { confirm } = require('@inquirer/prompts');
 const { performMCLoginFlow } = require("../libs/minecraft-auth.js");
+const {logout} = require("../libs/authentication");
 
 module.exports = {
     reset: new Command('reset')
@@ -32,6 +33,7 @@ module.exports = {
     uninstall: new Command('uninstall')
         .description('Uninstall Cauldron Installation')
         .action(async () => {
+            await logout();
             await resetCauldron()
         }),
 };
