@@ -2,30 +2,29 @@
 
 
 // Dependencies
-import Cryptr from 'cryptr';
+const Cryptr = require('cryptr');
 
-import fs from 'fs';
-import path from 'path';
-import jwt from 'jsonwebtoken';
-import ora from 'ora';
+const fs = require('fs');
+const path = require('path');
+const jwt = require('jsonwebtoken');
+const ora = require('ora-classic');
 
 // Cauldron Imports
-import {grabPath} from '@jackcooperdev/cauldronengine/compat';
+const { grabPath } = require('@jackcooperdev/cauldronengine/compat');
 
-import {checkInternet} from '@jackcooperdev/cauldronengine/online';
-import {startAuthenticationFlow} from '@jackcooperdev/cauldronauthentication';
+const { checkInternet } = require('@jackcooperdev/cauldronengine/online');
+const { startAuthenticationFlow } = require('@jackcooperdev/cauldronauthentication');
 
 // Internal Dependencies
-import {cauldronLogger} from '@jackcooperdev/cauldronengine/logger';
+const { cauldronLogger } = require('@jackcooperdev/cauldronengine/logger');
 
 
 // Set Constants
 
-import {verifyMinecraft} from '@jackcooperdev/cauldronauthentication/mas';
-import {sendToServer} from '../utils/apiCommunication.js';
-import {getEnginePath} from "../utils/enviromentManager.js";
-import {exec} from "child_process";
-
+const { verifyMinecraft } = require('@jackcooperdev/cauldronauthentication/mas');
+const { sendToServer } = require('../utils/apiCommunication.js');
+const { getEnginePath } = require("../utils/enviromentManager.js");
+const { exec } = require("child_process");
 const CAULDRON_PATH = getEnginePath();
 // Not Secret just for added security
 const cryptr = new Cryptr("yHfofXMDFWNaX4sXEe4P3RdYti4jaeLt");
@@ -168,6 +167,7 @@ async function refreshAccounts(forceRefresh) {
                 spinner.succeed(`Refreshed Account: ${CURRENT_PROFILES[idx].name}`);
             }
         } catch (e) {
+            console.log(e);
             cauldronLogger.error(`Failed to Refresh Account: ${C_IDENTIFIER}`)
         }
     }
@@ -297,7 +297,7 @@ async function performMCLoginFlow() {
 }
 
 
-export {
+module.exports = {
     startMCAccount,
     waitForComplete,
     refreshAccount,

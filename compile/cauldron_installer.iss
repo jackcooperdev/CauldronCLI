@@ -1,17 +1,17 @@
 ; cauldron_installer.iss
 [Setup]
 AppName=Cauldron CLI
-AppVersion=1.0.0
+AppVersion=0.0.1
 DefaultDirName={pf}\Cauldron
 DefaultGroupName=Cauldron
 OutputBaseFilename=cauldron-installer
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-LicenseFile=LICENSE
+LicenseFile=../LICENSE
 
 [Files]
-Source: "out\cauldroncli.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "cauldroncli.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 
 [Icons]

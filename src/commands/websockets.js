@@ -1,9 +1,9 @@
 // wsCommands.js
-import { Command } from 'commander';
-import os from 'os';
-import { fork } from 'child_process';
-import path from 'path';
-import { writeFileSync, readFileSync, unlinkSync } from 'fs';
+const { Command } = require('commander');
+const os = require('os');
+const { fork } = require('child_process');
+const path = require('path');
+const { writeFileSync, readFileSync, unlinkSync } = require('fs');
 
 // Use the current working directory as a base for relative paths
 const homedir = os.homedir();
@@ -12,7 +12,7 @@ const pidFilePath = path.join(homedir, 'wsServer.pid');
 // Calculate serverPath relative to the CLI root (assuming this file is in ./commands/)
 const serverPath = path.join(process.cwd(), 'utils', 'websocket.js');
 
-export default {
+module.exports = {
     websocket: new Command('websocket')
         .description('Starts a WebSocket server in a separate process.')
         .argument('[port]', 'The port to listen on (default: 9500)', 9500)

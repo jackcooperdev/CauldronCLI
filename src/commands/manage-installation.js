@@ -1,15 +1,14 @@
 // noinspection JSUnresolvedReference
 
-import {Command} from 'commander';
-import {resetCauldron, initializeCauldron} from '../libs/system.js';
-import loginToApi from "./login-to-api.js";
-import {performLoginFlow} from "../libs/authentication.js";
-import {downloadProfiles} from "../libs/profileManager.js";
-import {confirm} from "@inquirer/prompts";
-import {performMCLoginFlow} from "../libs/minecraft-auth.js";
+const { Command } = require('commander');
+const { resetCauldron, initializeCauldron } = require('../libs/system.js');
+const { performLoginFlow } = require("../libs/authentication.js");
+const { downloadProfiles } = require("../libs/profileManager.js");
+const { confirm } = require('@inquirer/prompts');
+const { performMCLoginFlow } = require("../libs/minecraft-auth.js");
+const {logout} = require("../libs/authentication");
 
-let enabledDebugNamespaces = [];
-export default {
+module.exports = {
     reset: new Command('reset')
         .description('Reset Cauldron Installation')
         .action(async () => {
@@ -34,6 +33,7 @@ export default {
     uninstall: new Command('uninstall')
         .description('Uninstall Cauldron Installation')
         .action(async () => {
+            await logout();
             await resetCauldron()
         }),
 };

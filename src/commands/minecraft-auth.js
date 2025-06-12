@@ -1,28 +1,19 @@
 // noinspection JSUnresolvedReference
 
-import {Command} from 'commander';
+const { Command } = require('commander');
 
-import ora from 'ora';
-import {resetCauldron} from '../libs/system.js';
-import {sendToServer} from '../utils/apiCommunication.js';
-import {grabServerAddress} from '../utils/enviromentManager.js';
 
-import {
-    waitForComplete,
-    writeToAccountsFile,
-    encrypt,
-    processRefreshToken,
-    grabAccountInfo,
+
+const {
     getAuthedUsers,
     logoutUser,
-    refreshAccounts, performMCLoginFlow,
-} from '../libs/minecraft-auth.js';
+    refreshAccounts,
+    performMCLoginFlow,
+} = require('../libs/minecraft-auth.js');
 
-import {startMCAccount} from '../libs/minecraft-auth.js';
-import {select, Separator} from '@inquirer/prompts';
-import {exec} from 'child_process';
+const { select } = require('@inquirer/prompts');
 
-export default {
+module.exports = {
     add_account: new Command('add')
         .description('Add Minecraft Account')
         .action(async () => {
