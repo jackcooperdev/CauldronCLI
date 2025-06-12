@@ -20,7 +20,7 @@ project follows the license guidelines.
 
 >You May need to restart your computer for it to be added to PATH.
 
-2. Follow Setup Guide [here](/cli/setup)
+2. Follow Setup Guide [here](https://docs.cauldronmc.com/cli/setup)
 
 ## Using CauldronCLI
 
