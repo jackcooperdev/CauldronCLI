@@ -7,7 +7,7 @@ const { spawn } = require('child_process');
 const { pathToFileURL } = require('url'); // This is an ESM utility, but the 'url' module exists in CJS
 
 // Cauldron Imports
-const { grabPath } = require('@jackcooperdev/cauldronengine/compat');
+const { grabPath, getOperatingSystem} = require('@jackcooperdev/cauldronengine/compat');
 
 const { getModList } = require('@jackcooperdev/packwiz_js');
 const { grabAccountInfo } = require('./minecraft-auth.js');
@@ -165,7 +165,11 @@ function compareArrays(arr1, arr2) {
 
 async function installMods(packID) {
     return new Promise(async (resolve) => {
-        const JVM_INSTALL = path.join(CAULDRON_PATH, 'jvm', 'java-runtime-alpha', 'bin', 'java');
+        let JVM_INSTALL = path.join(CAULDRON_PATH, 'jvm', 'java-runtime-alpha', 'bin', 'java');
+        if (getOperatingSystem() === 'osx') {
+            JVM_INSTALL = path.join(CAULDRON_PATH, 'jvm', 'java-runtime-alpha','jre.bundle','Contents','Home','bin','java');
+        }
+
         const PACKWIZ_INSTALL = path.join(CAULDRON_PATH, 'config','packwiz', 'packwiz-installer-bootstrap.jar');
         const PACK_PATH_RAW = path.join(CAULDRON_PATH, 'modpacks', packID, 'pack.toml');
         const PACK_PATH = pathToFileURL(PACK_PATH_RAW).href ;

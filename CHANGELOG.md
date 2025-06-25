@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Graceful CTRL-C Handling
 - Profile Creation
 - Mod Managment (Add-Only For Now)
+- Mac Compatability (Beta)
 
 ## Removed
 - Test Command

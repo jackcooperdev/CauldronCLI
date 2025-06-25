@@ -43,9 +43,16 @@ async function downloadPackWizInBackground() {
         fileName += '.exe';
         extension = '.exe';
     }
+
+    let nameInResources = CURRENT_OPERATING_SYSTEM;
+
+    if (CURRENT_OPERATING_SYSTEM === 'osx') {
+        nameInResources = 'mac';
+    }
+
     let downloadQueue = [
         {
-            origin: `${getResourcePath()}/packwiz/${CURRENT_OPERATING_SYSTEM}${extension}`,
+            origin: `${getResourcePath()}/packwiz/${nameInResources}${extension}`,
             destination: join(CAULDRON_PATH,'config', 'packwiz'),
             sha1: 'NONE',
             fileName: fileName
@@ -60,7 +67,7 @@ async function downloadPackWizInBackground() {
     const spinner = ora(`Downloading Packwiz...`).start();
     await verifyInstallation(downloadQueue);
     spinner.succeed(`Retrieved Packwiz`);
-    if (CURRENT_OPERATING_SYSTEM === 'linux') {
+    if (CURRENT_OPERATING_SYSTEM === 'linux' || CURRENT_OPERATING_SYSTEM === 'osx') {
         await fs.chmodSync(path.join(CAULDRON_PATH, 'config', 'packwiz', fileName), 0o755);
     }
 
@@ -128,7 +135,12 @@ async function initializeCauldron() {
 }
 
 async function resetCauldron() {
-    await rimraf(path.join(CAULDRON_PATH));
+    try {
+        await rimraf(path.join(CAULDRON_PATH));
+    } catch (e) {
+        console.log(e)
+    }
+
 }
 
 module.exports = {initializeCauldron, resetCauldron};

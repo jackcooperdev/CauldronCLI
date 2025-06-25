@@ -7,6 +7,7 @@ const { downloadProfiles } = require("../libs/profileManager.js");
 const { confirm } = require('@inquirer/prompts');
 const { performMCLoginFlow } = require("../libs/minecraft-auth.js");
 const {logout} = require("../libs/authentication");
+const {cauldronLogger} = require("@jackcooperdev/cauldronengine/logger");
 
 module.exports = {
     reset: new Command('reset')
@@ -17,8 +18,12 @@ module.exports = {
         }),
 
     setup: new Command('setup')
+        .option('-d, --debug', 'output extra debugging information')
         .description('Setup Cauldron Installation')
-        .action(async () => {
+        .action(async (options) => {
+            if (options.debug) {
+                cauldronLogger.level = 4;
+            }
             await initializeCauldron()
             await performLoginFlow();
             await downloadProfiles();
@@ -33,7 +38,8 @@ module.exports = {
     uninstall: new Command('uninstall')
         .description('Uninstall Cauldron Installation')
         .action(async () => {
-            await logout();
             await resetCauldron()
+            await logout();
+
         }),
 };
