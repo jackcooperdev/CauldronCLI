@@ -100,27 +100,38 @@ async function waitForComplete(device_code) {
     })
 }
 
-async function performLoginFlow() {
-    try {
-        const AUTH_DATA = await startAuthFlow();
-        if (AUTH_DATA.login_needed) {
-            let start = (process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open');
-            exec(start + ' ' + AUTH_DATA.data.verification_uri_complete);
-            console.log(`🚨 Your Code is ${AUTH_DATA.data.user_code}. Please Ensure it matches the one displayed in browser`);
-            console.log(`Opening Web Browser to Continue Login. If this does not work open this URL: ${AUTH_DATA.data.verification_uri_complete}`)
-            const spinner = ora(`Waiting For Login...`).start();
-            await waitForComplete(AUTH_DATA.data.device_code);
-            spinner.succeed(" Done!")
+async function performLoginFlow(isWS) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const AUTH_DATA = await startAuthFlow();
+            console.log('performed')
+            if (AUTH_DATA.login_needed) {
+                if (!isWS) {
+                    let start = (process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open');
+                    exec(start + ' ' + AUTH_DATA.data.verification_uri_complete);
+                    console.log(`🚨 Your Code is ${AUTH_DATA.data.user_code}. Please Ensure it matches the one displayed in browser`);
+                    console.log(`Opening Web Browser to Continue Login. If this does not work open this URL: ${AUTH_DATA.data.verification_uri_complete}`)
+                    const spinner = ora(`Waiting For Login...`).start();
+                    await waitForComplete(AUTH_DATA.data.device_code);
+                    spinner.succeed(" Done!")
+                } else {
+                    console.log(AUTH_DATA.data);
+                }
+
+            }
+            if (!isWS) {
+                const uData = await grabUserInfo();
+                console.log(`👋 Hello ${uData.name} (${uData.email}) You Are Logged Into CauldronAPI`);
+                await initializeCauldron();
+            }
+
+        } catch (e) {
+
+            cauldronLogger.error('⚠️ An Unexpected error occurred. Please try again later.');
+            cauldronLogger.error(e)
         }
+    })
 
-        const uData = await grabUserInfo();
-        console.log(`👋 Hello ${uData.name} (${uData.email}) You Are Logged Into CauldronAPI`);
-        await initializeCauldron();
-    } catch (e) {
-
-        cauldronLogger.error('⚠️ An Unexpected error occurred. Please try again later.');
-        cauldronLogger.error(e)
-    }
 }
 
 async function grabUserInfo() {
