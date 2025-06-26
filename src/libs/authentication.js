@@ -4,7 +4,7 @@ const { jwtDecode } = require('jwt-decode');
 
 const AUTH0_CLIENT = 'nxoRS1sbJ0XqglOzlya6vIszrHUpkJum';
 const keytar = require('../utils/storageManager.js'); // This was a namespace import, so it becomes a direct require
-const os = require('os');
+    const os = require('os');
 const { grabServerAddress } = require('../utils/enviromentManager.js');
 const { exec } = require("child_process");
 const ora = require("ora-classic");
@@ -104,7 +104,6 @@ async function performLoginFlow(isWS) {
     return new Promise(async (resolve, reject) => {
         try {
             const AUTH_DATA = await startAuthFlow();
-            console.log('performed')
             if (AUTH_DATA.login_needed) {
                 if (!isWS) {
                     let start = (process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open');
@@ -115,7 +114,8 @@ async function performLoginFlow(isWS) {
                     await waitForComplete(AUTH_DATA.data.device_code);
                     spinner.succeed(" Done!")
                 } else {
-                    console.log(AUTH_DATA.data);
+                    resolve(AUTH_DATA.data)
+
                 }
 
             }
@@ -123,6 +123,8 @@ async function performLoginFlow(isWS) {
                 const uData = await grabUserInfo();
                 console.log(`👋 Hello ${uData.name} (${uData.email}) You Are Logged Into CauldronAPI`);
                 await initializeCauldron();
+            } else{
+                resolve({message:'User is logged in'})
             }
 
         } catch (e) {
