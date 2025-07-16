@@ -8,6 +8,8 @@ const {sendToServer} = require("../utils/apiCommunication");
 const {downloadProfiles, getProfiles} = require("../libs/profileManager");
 const {addMod} = require("../libs/modManager");
 const {logout} = require("../libs/authentication");
+const {version} = require("esbuild");
+const {getAuthedUsers} = require("../libs/minecraft-auth");
 // No need for fs or path modules since we're fetching from a URL
 
 // Define the URL to your version manifest file
@@ -17,10 +19,11 @@ module.exports = {
     create_profile: new Command('create_profile')
         .description("Create a Profile")
         .option('-v, --version <type>', 'Minecraft Version', undefined)
-        .option('-l, --mc_loader <type>', 'Minecraft Loader', undefined)
-        .option('-n, --name <type>', 'Profile Name', undefined)
+        .option('-l, --mc_loader <type>', 'Minecraft Loader', 'vanilla')
+        .option('-t, --name <type>', 'Profile Name', undefined)
         .option('-b, --boot', 'Boot On Creation', false)
         .option('-d, --debug', 'output extra debugging information')
+        .option('-n, --headless', 'Skip Interactive Elements')
         .action(async (options) => {
             if (options.debug) {
                 cauldronLogger.level = 4;
@@ -90,6 +93,7 @@ module.exports = {
                 //You can use 'answer' here after the user makes a selection
                 cauldronLogger.info('Selected version ID:', answer);
                 cauldronLogger.info('Selected Loader:', loaderAnswer);
+                answer = await whatIsThis(answer, response);
                 const foundVersionData = data.versions.find((version) => version.id === answer);
                 if (!foundVersionData) {
                     cauldronLogger.error('Invalid Version / Loader Combo')
@@ -114,7 +118,7 @@ module.exports = {
                     modpackInfo: {provider: 'custom', mods: []}
                 }
 
-                if (loaderAnswer !== "vanilla") {
+                if (loaderAnswer !== "vanilla" && !options.headless) {
                     newProfile.isModded = true;
                     let mods = [];
                     let addAnotherMod = false;
@@ -131,6 +135,8 @@ module.exports = {
                         }
                     }
                     newProfile.modpackInfo.mods = mods;
+                } else if (loaderAnswer !== "vanilla" && options.headless) {
+                    newProfile.isModded = true;
                 }
 
                 let sendData = {
@@ -160,13 +166,15 @@ module.exports = {
     add_mods: new Command('add_mods')
         .description("Add Mods To Profile")
         .option('-p, --profile <type>', 'Minecraft Version', undefined)
+        .option('-m, --mods <type>', 'List of mods (CSV)', undefined)
+        .option('-n, --headless', 'Skip Interactive Elements')
         .option('-d, --debug', 'output extra debugging information')
         .action(async (options) => {
             await downloadProfiles();
             let profiles = await getProfiles();
             let profileOptions = [];
             let answer;
-            if (!options.profile) {
+            if (!options.profile &&  !options.headless) {
                 for (let idx in profiles) {
                     if (profiles[idx].isModded) {
                         profileOptions.push({
@@ -190,19 +198,42 @@ module.exports = {
             }
 
             let mods = [];
-            let addAnotherMod = false;
-            addAnotherMod = await confirm({message: "Would you like to add a mod?"})
-            if (addAnotherMod) {
-                while (addAnotherMod) {
-                    let newMod = await addMod();
-                    let newModObj = {
-                        source: 'cf',
-                        slug: newMod,
+
+            if (!options.headless) {
+                let addAnotherMod = false;
+                addAnotherMod = await confirm({message: "Would you like to add a mod?"})
+                if (addAnotherMod) {
+                    while (addAnotherMod) {
+                        let newMod = await addMod();
+                        let newModObj = {
+                            source: 'cf',
+                            slug: newMod,
+                        }
+                        mods.push(newModObj);
+                        addAnotherMod = await confirm({message: "Would you like to add another mod?"})
                     }
-                    mods.push(newModObj);
-                    addAnotherMod = await confirm({message: "Would you like to add another mod?"})
+                }
+            } else {
+                mods = []
+                let modList = options.mods.split(" ")
+                for (let idx in modList) {
+                    let sendData = {
+                        method: 'get',
+                        url: `modpack/curse-lookup?knownSlug=${modList[idx]}&version=${answer.options.version}`,
+                    }
+
+                    const result = await sendToServer(sendData, true);
+                    if (result.isCompatible || result.includes("modrinth")) {
+                        let nm = {
+                            slug: modList[idx],
+                            source: 'cf',
+                        }
+                        mods.push(nm);
+                    }
                 }
             }
+
+
 
             let modifedifiedPayload = {
                 mods: mods
@@ -213,9 +244,11 @@ module.exports = {
                 data: JSON.stringify(modifedifiedPayload),
             }
 
+
             await sendToServer(sendData, true);
 
             cauldronLogger.info('Pack Updated Successfully')
+            process.exit(0)
 
 
         }),
@@ -224,6 +257,7 @@ module.exports = {
         .description('Logout from CauldronAPI')
         .requiredOption('-u, --user <type>', 'User to share with')
         .option('-p, --profile <type>', 'Profile To Share')
+        .option('-n, --headless', 'Skip Interactive Elements')
         .action(async (options) => {
             await downloadProfiles();
             let profiles = await getProfiles();
@@ -264,6 +298,18 @@ module.exports = {
             await sendToServer(sendData, true);
 
             cauldronLogger.info('Pack Shared Successfully')
+            process.exit(0)
 
+        }),
+
+    list_profiles: new Command('list_profiles')
+        .option('-n, --headless', 'Skip Interactive Elements')
+        .option('-d, --debug', 'output extra debugging information')
+        .description('List Minecraft Profiles')
+        .action(async () => {
+            await downloadProfiles();
+            let profiles = await getProfiles();
+            console.log(profiles);
+            process.exit(0)
         }),
 };

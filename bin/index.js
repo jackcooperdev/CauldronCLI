@@ -3,7 +3,6 @@ const { Command } = require('commander');
 
 const program = new Command();
 
-const command1 = require('../src/commands/websockets.js');
 const command2 = require('../src/commands/login-to-api.js');
 const command3 = require('../src/commands/manage-installation.js');
 const command4 = require('../src/commands/minecraft-auth.js');
@@ -11,14 +10,10 @@ const command5 = require('../src/commands/launcher.js');
 const command6 = require('../src/commands/profile.js');
 
 const pkg = require('../package.json');
+const {initializeCauldron} = require("../src/libs/system");
 
 async function loadCommands() {
     // Add commands from each imported module
-    for (const commandName in command1) {
-        if (command1[commandName] instanceof Command) {
-            program.addCommand(command1[commandName]);
-        }
-    }
 
     for (const commandName in command2) {
         if (command2[commandName] instanceof Command) {
@@ -56,6 +51,7 @@ async function main() {
         .version(pkg.version)
     //.option('-d, --debug', 'output extra debugging information')
 
+    await initializeCauldron()
     await loadCommands(); // Load other commands
 
     program.parse(process.argv);

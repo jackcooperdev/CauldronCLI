@@ -43,6 +43,7 @@ async function isDownloaded(version, loader) {
 async function launchMinecraft(sessionID, mcAccountID, profileInfo, installOnly) {
     return new Promise(async (resolve, reject) => {
         try {
+
             let authData;
             if (!installOnly) {
                 authData = await grabAccountInfo(mcAccountID);
@@ -91,7 +92,7 @@ async function launchMinecraft(sessionID, mcAccountID, profileInfo, installOnly)
 
             if (profileInfo.isModded) {
                 let modpackPath = path.join(CAULDRON_PATH, 'modpacks', profileInfo._id, 'mods');
-
+                console.log(modpackPath);
                 if (fs.existsSync(modpackPath)) {
                     if (fs.existsSync(path.join(CAULDRON_PATH, 'sessions', sessionID, 'mods'))) {
 
@@ -118,6 +119,7 @@ async function launchMinecraft(sessionID, mcAccountID, profileInfo, installOnly)
                     }
                 }
             }
+
             let installLock = true
             if (installOnly && !installLock && (await isDownloaded(profileInfo.options.version, profileInfo.options.loader))) {
                 cauldronLogger.debug('Install Only Skipped')
@@ -135,6 +137,7 @@ async function launchMinecraft(sessionID, mcAccountID, profileInfo, installOnly)
                 resolve(launchMinecraftSession);
             }
         } catch (e) {
+            console.log('here')
             console.log(e)
             reject(e);
         }

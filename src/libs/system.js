@@ -134,6 +134,21 @@ async function initializeCauldron() {
     });
 }
 
+
+async function checkForInstall() {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!fs.existsSync(path.join(CAULDRON_PATH, 'install'))) {
+               resolve(false);
+            } else {
+                resolve(true);
+            }
+        } catch (e) {
+            reject(e);
+        }
+    })
+}
+
 async function resetCauldron() {
     try {
         await rimraf(path.join(CAULDRON_PATH));
@@ -143,4 +158,4 @@ async function resetCauldron() {
 
 }
 
-module.exports = {initializeCauldron, resetCauldron};
+module.exports = {initializeCauldron, resetCauldron, checkForInstall};

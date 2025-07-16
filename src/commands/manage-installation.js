@@ -6,8 +6,10 @@ const { performLoginFlow } = require("../libs/authentication.js");
 const { downloadProfiles } = require("../libs/profileManager.js");
 const { confirm } = require('@inquirer/prompts');
 const { performMCLoginFlow } = require("../libs/minecraft-auth.js");
-const {logout} = require("../libs/authentication");
+const {logout, waitForComplete} = require("../libs/authentication");
 const {cauldronLogger} = require("@jackcooperdev/cauldronengine/logger");
+const {getEnginePath} = require("../utils/enviromentManager");
+const {getOperatingSystem} = require("@jackcooperdev/cauldronengine/compat");
 
 module.exports = {
     reset: new Command('reset')
@@ -15,31 +17,27 @@ module.exports = {
         .action(async () => {
             await resetCauldron()
             await initializeCauldron()
+            process.exit(0);
         }),
 
-    setup: new Command('setup')
-        .option('-d, --debug', 'output extra debugging information')
-        .description('Setup Cauldron Installation')
-        .action(async (options) => {
-            if (options.debug) {
-                cauldronLogger.level = 4;
-            }
-            await initializeCauldron()
-            await performLoginFlow();
-            await downloadProfiles();
-            const answer = await confirm({
-                message: 'Would you like to add a Minecraft account?',
-            });
-            if (answer) {
-                await performMCLoginFlow();
-            }
-        }),
 
     uninstall: new Command('uninstall')
         .description('Uninstall Cauldron Installation')
+        .option('-n, --headless', 'Skip Interactive Elements')
         .action(async () => {
             await resetCauldron()
             await logout();
+            process.exit(0);
 
         }),
+
+
+    test: new Command('test')
+        .description('Uninstall Cauldron Installation')
+        .option('-n, --headless', 'Skip Interactive Elements')
+        .action(async () => {
+            process.exit(0);
+
+        }),
+
 };

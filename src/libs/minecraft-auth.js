@@ -271,35 +271,30 @@ async function refreshToken(refresh_token) {
     });
 }
 
-async function performMCLoginFlow(isWS, loginCode) {
+async function performMCLoginFlow(loginCode) {
     let spinner = ora(`Waiting For Login...`)
     try {
-        const AUTH_DATA = await startMCAccount();
-        if (isWS) {
-            let start = (process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open');
-            exec(start + ' ' + AUTH_DATA.data.url);
-            console.log(`✨  Opening Web Browser to Continue Login. If this does not work open this URL: ${AUTH_DATA.data.url}`)
-            spinner.start();
-            const sign_in = await waitForComplete(AUTH_DATA.data.code);
+            if (!loginCode) {
+                const AUTH_DATA = await startMCAccount();
+                let start = (process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open');
+                exec(start + ' ' + AUTH_DATA.data.url);
+                console.log(`✨  Opening Web Browser to Continue Login. If this does not work open this URL: ${AUTH_DATA.data.url}`)
+                spinner.start();
+                loginCode = AUTH_DATA.data.code;
+            }
+
+            const sign_in = await waitForComplete(loginCode);
             spinner.succeed(` Acquired Microsoft Refresh Token`);
             spinner.start(`Writing To File...`)
-            await writeToAccountsFile(AUTH_DATA.data.code, {"refresh_token": encrypt(sign_in.token)});
+            await writeToAccountsFile(loginCode, {"refresh_token": encrypt(sign_in.token)});
             spinner.succeed(` Written to File`);
             spinner.start(`Logging into Minecraft...`)
-            await processRefreshToken(AUTH_DATA.data.code);
+            await processRefreshToken(loginCode);
             spinner.succeed(` Logged Into Minecraft`);
             spinner.start(`Getting Account Info From Minecraft...`);
-            const account_info = await grabAccountInfo(AUTH_DATA.data.code);
+            const account_info = await grabAccountInfo(loginCode);
             spinner.succeed(`👋 Hello ${account_info.profile.username} Your account has been added!.`);
-        } else {
-            const sign_in = await waitForComplete(loginCode);
-            await writeToAccountsFile(loginCode, {"refresh_token": encrypt(sign_in.token)});
-            await processRefreshToken(AUTH_DATA.data.code);
-            spinner.succeed(` Logged Into Minecraft`);
-            spinner.start(`Getting Account Info From Minecraft...`);
-            const account_info = await grabAccountInfo(AUTH_DATA.data.code);
-            spinner.succeed(`👋 Hello ${account_info.profile.username} Your account has been added!.`);
-        }
+            return {message:'Account added',name: account_info.profile.username}
 
     } catch (e) {
         console.log(e)
