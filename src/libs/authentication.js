@@ -4,7 +4,7 @@ const { jwtDecode } = require('jwt-decode');
 
 const AUTH0_CLIENT = 'nxoRS1sbJ0XqglOzlya6vIszrHUpkJum';
 const keytar = require('../utils/storageManager.js'); // This was a namespace import, so it becomes a direct require
-const os = require('os');
+    const os = require('os');
 const { grabServerAddress } = require('../utils/enviromentManager.js');
 const { exec } = require("child_process");
 const ora = require("ora-classic");
@@ -100,27 +100,43 @@ async function waitForComplete(device_code) {
     })
 }
 
-async function performLoginFlow() {
-    try {
-        const AUTH_DATA = await startAuthFlow();
-        if (AUTH_DATA.login_needed) {
-            let start = (process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open');
-            exec(start + ' ' + AUTH_DATA.data.verification_uri_complete);
-            console.log(`🚨 Your Code is ${AUTH_DATA.data.user_code}. Please Ensure it matches the one displayed in browser`);
-            console.log(`Opening Web Browser to Continue Login. If this does not work open this URL: ${AUTH_DATA.data.verification_uri_complete}`)
-            const spinner = ora(`Waiting For Login...`).start();
-            await waitForComplete(AUTH_DATA.data.device_code);
-            spinner.succeed(" Done!")
+async function performLoginFlow(isHeadLess,loginCode) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const AUTH_DATA = await startAuthFlow();
+            if (AUTH_DATA.login_needed) {
+                if (!isHeadLess || isHeadLess && loginCode) {
+                    if (!isHeadLess) {
+                        let start = (process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open');
+                        exec(start + ' ' + AUTH_DATA.data.verification_uri_complete);
+                        console.log(`🚨 Your Code is ${AUTH_DATA.data.user_code}. Please Ensure it matches the one displayed in browser`);
+                        console.log(`Opening Web Browser to Continue Login. If this does not work open this URL: ${AUTH_DATA.data.verification_uri_complete}`)
+                        loginCode = AUTH_DATA.data.device_code
+                    }
+                    const spinner = ora(`Waiting For Login...`).start();
+                    await waitForComplete(loginCode);
+                    spinner.succeed(" Done!")
+                    resolve(true)
+                } else {
+                    console.log(AUTH_DATA.data)
+                    resolve(AUTH_DATA.data)
+                }
+            }
+            if (!isHeadLess) {
+                const uData = await grabUserInfo();
+                console.log(`👋 Hello ${uData.name} (${uData.email}) You Are Logged Into CauldronAPI`);
+                resolve(true);
+            } else{
+                resolve({message:'User is logged in'})
+            }
+
+        } catch (e) {
+
+            cauldronLogger.error('⚠️ An Unexpected error occurred. Please try again later.');
+            cauldronLogger.error(e)
         }
+    })
 
-        const uData = await grabUserInfo();
-        console.log(`👋 Hello ${uData.name} (${uData.email}) You Are Logged Into CauldronAPI`);
-        await initializeCauldron();
-    } catch (e) {
-
-        cauldronLogger.error('⚠️ An Unexpected error occurred. Please try again later.');
-        cauldronLogger.error(e)
-    }
 }
 
 async function grabUserInfo() {
@@ -165,7 +181,9 @@ async function grabAccessToken() {
             if ((await keytar.getPassword('cauldroncli', keytarAccount)) === null) {
                 console.log(keytarAccount)
                 console.log(`🚨 You have not logged in please log in using the login command!`)
-                process.exit(1);
+                reject("user not logged in");
+                return;
+
             }
             const refresh_response = await refresh();
             if (refresh_response.ok) {
@@ -210,15 +228,17 @@ async function refresh() {
 }
 
 function logout() {
-    return new Promise(async () => {
+    return new Promise(async (resolve) => {
         if ((await keytar.getPassword('cauldroncli', keytarAccount)) != null) {
             // noinspection ES6MissingAwait
-            keytar.deletePassword('cauldroncli', keytarAccount);
+            await keytar.deletePassword('cauldroncli', keytarAccount);
             // noinspection ES6MissingAwait
-            keytar.deletePassword('cauldronapi', keytarAccount);
+            await keytar.deletePassword('cauldronapi', keytarAccount);
             console.log(`👋 Logged Out`)
+            resolve(true);
         } else {
             console.log('⚠️ You Are not Logged In')
+            resolve(false);
         }
     });
 

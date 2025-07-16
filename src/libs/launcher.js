@@ -7,7 +7,7 @@ const { spawn } = require('child_process');
 const { pathToFileURL } = require('url'); // This is an ESM utility, but the 'url' module exists in CJS
 
 // Cauldron Imports
-const { grabPath } = require('@jackcooperdev/cauldronengine/compat');
+const { grabPath, getOperatingSystem} = require('@jackcooperdev/cauldronengine/compat');
 
 const { getModList } = require('@jackcooperdev/packwiz_js');
 const { grabAccountInfo } = require('./minecraft-auth.js');
@@ -43,6 +43,7 @@ async function isDownloaded(version, loader) {
 async function launchMinecraft(sessionID, mcAccountID, profileInfo, installOnly) {
     return new Promise(async (resolve, reject) => {
         try {
+
             let authData;
             if (!installOnly) {
                 authData = await grabAccountInfo(mcAccountID);
@@ -91,7 +92,7 @@ async function launchMinecraft(sessionID, mcAccountID, profileInfo, installOnly)
 
             if (profileInfo.isModded) {
                 let modpackPath = path.join(CAULDRON_PATH, 'modpacks', profileInfo._id, 'mods');
-
+                console.log(modpackPath);
                 if (fs.existsSync(modpackPath)) {
                     if (fs.existsSync(path.join(CAULDRON_PATH, 'sessions', sessionID, 'mods'))) {
 
@@ -118,6 +119,7 @@ async function launchMinecraft(sessionID, mcAccountID, profileInfo, installOnly)
                     }
                 }
             }
+
             let installLock = true
             if (installOnly && !installLock && (await isDownloaded(profileInfo.options.version, profileInfo.options.loader))) {
                 cauldronLogger.debug('Install Only Skipped')
@@ -135,6 +137,7 @@ async function launchMinecraft(sessionID, mcAccountID, profileInfo, installOnly)
                 resolve(launchMinecraftSession);
             }
         } catch (e) {
+            console.log('here')
             console.log(e)
             reject(e);
         }
@@ -165,7 +168,11 @@ function compareArrays(arr1, arr2) {
 
 async function installMods(packID) {
     return new Promise(async (resolve) => {
-        const JVM_INSTALL = path.join(CAULDRON_PATH, 'jvm', 'java-runtime-alpha', 'bin', 'java');
+        let JVM_INSTALL = path.join(CAULDRON_PATH, 'jvm', 'java-runtime-alpha', 'bin', 'java');
+        if (getOperatingSystem() === 'osx') {
+            JVM_INSTALL = path.join(CAULDRON_PATH, 'jvm', 'java-runtime-alpha','jre.bundle','Contents','Home','bin','java');
+        }
+
         const PACKWIZ_INSTALL = path.join(CAULDRON_PATH, 'config','packwiz', 'packwiz-installer-bootstrap.jar');
         const PACK_PATH_RAW = path.join(CAULDRON_PATH, 'modpacks', packID, 'pack.toml');
         const PACK_PATH = pathToFileURL(PACK_PATH_RAW).href ;

@@ -21,6 +21,7 @@ module.exports = {
         .option('-m, --account <type>', 'Minecraft Account Identifier')
         .option('-i, --dry', "Install but dont launch", false)
         .option('-d, --debug', 'output extra debugging information')
+        .option('-n, --headless', 'Skip Interactive Elements')
         .action(async (options) => {
             try {
                 if (options.debug) {
@@ -32,7 +33,7 @@ module.exports = {
                     if (currentAccounts.length !== 0) {
                         mc_account = currentAccounts[0];
                     } else {
-                        cauldronLogger.error('No Accounts Logged In! Run cauldron add')
+                        cauldronLogger.error('No Accounts Logged In! Run cauldroncli add')
                         process.exit(1);
                     }
                 } else {
@@ -51,11 +52,13 @@ module.exports = {
                     overrides: overrides
                 }
                 cauldronLogger.debug(profileInfo);
-                if (!options.install_only) {
-                    startMCListening();
-                }
+
                 const startLaunch = await launchMinecraft(`quick-${options.mc_loader}-${options.mc_version}`, mc_account.value, profileInfo, options.install_only);
                 cauldronLogger.info(`Started Session: ${startLaunch}`)
+                if (!options.install_only) {
+                    await startMCListening();
+                }
+                process.exit(0)
             } catch (error) {
                 cauldronLogger.error(error);
                 process.exit(1);
@@ -69,18 +72,20 @@ module.exports = {
         .option('-m, --account <type>', 'Minecraft Account Identifier')
         .option('-i, --dry', "Install but dont launch", false)
         .option('-d, --debug', 'output extra debugging information')
+        .option('-n, --headless', 'Skip Interactive Elements')
         .action(async (options) => {
             try {
                 if (options.debug) {
                     cauldronLogger.level = 4;
                 }
+
                 let mc_account;
                 if (!options.account) {
                     const currentAccounts = await getAuthedUsers();
                     if (currentAccounts.length !== 0) {
                         mc_account = currentAccounts[0];
                     } else {
-                        cauldronLogger.error('No Accounts Logged In! Run cauldron add')
+                        cauldronLogger.error('No Accounts Logged In! Run cauldroncli add')
                         process.exit(1);
                     }
                 } else {
@@ -88,8 +93,10 @@ module.exports = {
                 }
                 cauldronLogger.debug(`Selected Account: ${mc_account.name}`);
 
-                await refreshAccounts();
+                //await refreshAccounts();
+                cauldronLogger.debug('Refreshed Accounts')
                 await downloadProfiles();
+                cauldronLogger.debug('Passed Refresh and Download')
                 let profiles = await getProfiles();
                 let profileOptions = [];
                 let answer;
@@ -104,9 +111,12 @@ module.exports = {
                         choices: profileOptions
                     });
                 } else {
+                    cauldronLogger.debug('Looking for Profile: '+options.profile);
+                    cauldronLogger.debug('Profile Length: '+profiles.length);
                     for (let idx in profiles) {
                         if (profiles[idx]._id === options.profile) {
                             answer = profiles[idx]
+                            //break;
                         }
                     }
                 }
@@ -133,13 +143,9 @@ module.exports = {
                         localProfiles[profileInfo._id] = profileInfo.updatedAt;
                     }
                     fs.writeFileSync(path.join(getEnginePath(), 'config', 'local_profiles.json'),JSON.stringify(localProfiles, null, 2));
-
+                    cauldronLogger.debug('Ready to Boot')
                     cauldronLogger.info(`Starting Minecraft Version: ${profileInfo.options.version} (${profileInfo.options.loader}) with account ${mc_account.name}`);
                     cauldronLogger.debug(profileInfo);
-                    if (!options.install_only) {
-                        startMCListening();
-                    }
-
                     // Handle Modded Pack
                     if (profileInfo.isModded) {
                         if (!fs.existsSync(path.join(getEnginePath(),'modpacks',profileInfo._id)) || modpackUpdate) {
@@ -150,6 +156,12 @@ module.exports = {
 
                     const startLaunch = await launchMinecraft(`${profileInfo._id}`, mc_account.value, profileInfo, options.install_only);
                     cauldronLogger.info(`Started Session: ${startLaunch}`)
+                    if (!options.install_only) {
+                        await startMCListening();
+                    }
+                    process.exit(0)
+                } else {
+                    cauldronLogger.debug('I seem to be stuck')
                 }
 
             } catch (error) {

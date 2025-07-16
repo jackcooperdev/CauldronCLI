@@ -6,11 +6,13 @@ if (-not $Tag) {
     Write-Host "Usage: .\release.ps1 v1.2.3"
     exit 1
 }
-
+# npx --yes nexe@5.0.0-beta.4 ../dist/cli.cjs -t windows-x64-20.10.0 -o cauldroncli.exe --build
 $BinaryName = "cauldroncli.exe"
+$BinaryNameWeb = "cauldronws.exe"
 $InstallerName = "cauldron-installer.exe"
 $Target = "windows-x64-20.10.0"
 $EntryFile = "../dist/cli.cjs" # This is likely the output of your build.js
+$EntryFileWeb = "../src/utils/websocket.js" # This is likely the output of your build.js
 $InstallerScript = "cauldron_installer.iss"
 
 # Check for required tools
@@ -43,6 +45,7 @@ if (-not (Test-Path $EntryFile)) {
 # Build binary with nexe
 Write-Host "Building $BinaryName with nexe..."
 npx --yes nexe@5.0.0-beta.4 $EntryFile -t $Target -o $BinaryName --build
+npx --yes nexe@5.0.0-beta.4 $EntryFileWeb -t $Target -o $BinaryNameWeb --build
 
 # Create git tag and push if it doesn't exist
 $tagExists = git tag --list $Tag
@@ -66,6 +69,7 @@ if ($LASTEXITCODE -eq 0) {
 # Upload binary to release
 Write-Host "Uploading $BinaryName to release $Tag..."
 gh release upload $Tag $BinaryName --clobber
+gh release upload $Tag $BinaryNameWeb --clobber
 
 # Prepare installer
 
@@ -75,6 +79,7 @@ if (-not (Test-Path $outDir)) {
     New-Item -ItemType Directory -Path $outDir | Out-Null
 }
 Copy-Item $BinaryName "$outDir\cauldroncli.exe" -Force
+Copy-Item $BinaryNameWeb "$outDir\cauldronws.exe" -Force
 
 # Update the AppVersion in installer script (remove leading 'v' if present)
 $version = $Tag.TrimStart("v")
