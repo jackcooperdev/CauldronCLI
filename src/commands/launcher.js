@@ -37,7 +37,16 @@ module.exports = {
                         process.exit(1);
                     }
                 } else {
-                    mc_account = options.account;
+                    const currentAccounts = await getAuthedUsers();
+                    for (let account of currentAccounts) {
+                        if (account.value === options.account) {
+                            mc_account = account;
+                        }
+                    }
+                    if (!mc_account) {
+                        cauldronLogger.error('No Accounts Logged In! Run cauldroncli add')
+                        process.exit(1);
+                    }
                 }
                 cauldronLogger.debug(`Selected Account: ${mc_account.name}`);
                 cauldronLogger.info(`Starting Minecraft Version: ${options.mc_version} (${options.mc_loader}) with account ${mc_account.name}`);
@@ -89,7 +98,16 @@ module.exports = {
                         process.exit(1);
                     }
                 } else {
-                    mc_account = options.account;
+                    const currentAccounts = await getAuthedUsers();
+                    for (let account of currentAccounts) {
+                        if (account.value === options.account) {
+                            mc_account = account;
+                        }
+                    }
+                    if (!mc_account) {
+                        cauldronLogger.error('No Accounts Logged In! Run cauldroncli add')
+                        process.exit(1);
+                    }
                 }
                 cauldronLogger.debug(`Selected Account: ${mc_account.name}`);
 
