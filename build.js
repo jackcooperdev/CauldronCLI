@@ -1,16 +1,34 @@
 // build.js
-const { build } = require('esbuild')
+const { build } = require('esbuild');
+const path = require('path');
+const fs = require('fs');
+
+const rootDir = __dirname;
+
+const entry = path.join(rootDir, 'bin/index.js');
+const outfile = path.join(rootDir, 'dist/cli.cjs');
+
+// Ensure dist exists
+const distDir = path.join(rootDir, 'dist');
+if (!fs.existsSync(distDir)) {
+    fs.mkdirSync(distDir);
+}
 
 build({
-    entryPoints: ['../bin/index.js'],
+    entryPoints: [entry],
     bundle: true,
     platform: 'node',
     format: 'cjs',
-    outfile: '../dist/cli.cjs',
-    external: ['node:*'], // 👈 native modules marked external
+    outfile: outfile,
+    external: ['node:*'],
     minify: false,
     sourcemap: true,
     target: ['node20'],
 }).then(() => {
     console.log('Build complete!');
-}).catch(() => process.exit(1));
+    console.log('Entry:', entry);
+    console.log('Output:', outfile);
+}).catch((err) => {
+    console.error(err);
+    process.exit(1);
+});
