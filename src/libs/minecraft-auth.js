@@ -276,6 +276,7 @@ async function performMCLoginFlow(loginCode) {
     try {
             if (!loginCode) {
                 const AUTH_DATA = await startMCAccount();
+                console.log(AUTH_DATA);
                 let start = (process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open');
                 exec(start + ' ' + AUTH_DATA.data.url);
                 console.log(`✨  Opening Web Browser to Continue Login. If this does not work open this URL: ${AUTH_DATA.data.url}`)

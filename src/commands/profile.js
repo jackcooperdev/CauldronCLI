@@ -19,7 +19,7 @@ module.exports = {
     create_profile: new Command('create_profile')
         .description("Create a Profile")
         .option('-v, --version <type>', 'Minecraft Version', undefined)
-        .option('-l, --mc_loader <type>', 'Minecraft Loader', 'vanilla')
+        .option('-l, --mc_loader <type>', 'Minecraft Loader', undefined)
         .option('-t, --name <type>', 'Profile Name', undefined)
         .option('-b, --boot', 'Boot On Creation', false)
         .option('-d, --debug', 'output extra debugging information')
@@ -30,7 +30,7 @@ module.exports = {
             }
             const loaders = await checkManifest("cauldron_supported_loaders.json", `${RESOURCES_PATH}/supported_loaders.json`, "main");
             let loaderAnswer;
-
+            console.log(options)
             if (options.mc_loader && loaders.includes(options.mc_loader)) {
                 loaderAnswer = options.mc_loader;
             } else {

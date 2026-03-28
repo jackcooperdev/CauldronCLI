@@ -12,7 +12,7 @@ const { spawn } = require('child_process');
 const { WebSocketServer } = require('ws');
 
 const port = 8080;
-const cliLocation =  'cauldroncli';
+const cliLocation =  'cauldroncli-dev';
 const server = new WebSocketServer({
     port: port
 });

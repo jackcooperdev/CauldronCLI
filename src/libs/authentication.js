@@ -2,7 +2,7 @@ const qs = require('qs');
 const fetch = require('node-fetch');
 const { jwtDecode } = require('jwt-decode');
 
-const AUTH0_CLIENT = 'nxoRS1sbJ0XqglOzlya6vIszrHUpkJum';
+const AUTH0_CLIENT = '69c1aba074d6ddf3a7467738';
 const keytar = require('../utils/storageManager.js'); // This was a namespace import, so it becomes a direct require
     const os = require('os');
 const { grabServerAddress } = require('../utils/enviromentManager.js');
@@ -10,14 +10,16 @@ const { exec } = require("child_process");
 const ora = require("ora-classic");
 const { initializeCauldron } = require("./system.js");
 const { cauldronLogger } = require('@jackcooperdev/cauldronengine/logger');
+const {grabAuthServer} = require("../utils/enviromentManager");
 
 const keytarAccount = os.userInfo().username;
+
 
 async function startAuthFlow() {
     let main_data = qs.stringify({
         'client_id': AUTH0_CLIENT,
-        'scope': 'openid profile email offline_access',
-        'audience': 'https://api.cauldronmc.com'
+        'scope': 'openid profile email',
+        'audience': '69c1ab5f74d6ddf3a7467734'
     });
 
     return new Promise(async (resolve, reject) => {
@@ -34,7 +36,7 @@ async function startAuthFlow() {
                         body: main_data
                     };
                     try {
-                        const response = await fetch("https://cauldronmc.uk.auth0.com/oauth/device/code", config);
+                        const response = await fetch(`${grabAuthServer()}/api/oauth/device/code`, config);
                         resolve({login_needed: true, data: await response.json()});
                     } catch (e) {
                         reject(e);
@@ -56,7 +58,7 @@ async function startAuthFlow() {
                 body: main_data
             };
             try {
-                const response = await fetch("https://cauldronmc.uk.auth0.com/oauth/device/code", config);
+                const response = await fetch(`${grabAuthServer()}/api/oauth/device/code`, config);
                 resolve({login_needed: true, data: await response.json()});
             } catch (e) {
                 reject(e);
@@ -83,7 +85,7 @@ async function waitForComplete(device_code) {
         };
         const tryAuth = setInterval(async function () {
             try {
-                const response = await fetch("https://cauldronmc.uk.auth0.com/oauth/token", config1);
+                const response = await fetch(`${grabAuthServer()}/api/oauth/authorize/exchange`, config1);
                 if (response.ok) {
                     clearInterval(tryAuth);
                     let responseData = await response.json();
@@ -104,6 +106,7 @@ async function performLoginFlow(isHeadLess,loginCode) {
     return new Promise(async (resolve, reject) => {
         try {
             const AUTH_DATA = await startAuthFlow();
+            console.log(AUTH_DATA);
             if (AUTH_DATA.login_needed) {
                 if (!isHeadLess || isHeadLess && loginCode) {
                     if (!isHeadLess) {
@@ -118,7 +121,6 @@ async function performLoginFlow(isHeadLess,loginCode) {
                     spinner.succeed(" Done!")
                     resolve(true)
                 } else {
-                    console.log(AUTH_DATA.data)
                     resolve(AUTH_DATA.data)
                 }
             }
@@ -143,17 +145,7 @@ async function grabUserInfo() {
     return new Promise(async (resolve) => {
         try {
             const accessToken = await grabAccessToken();
-            let config = {
-                method: 'get',
-                maxBodyLength: Infinity,
-                headers: {
-                    'content-type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
-                },
-            };
-
-            const response = await fetch("https://cauldronmc.uk.auth0.com/userinfo", config);
-            resolve(response.json());
+            resolve(jwtDecode(accessToken))
         } catch (e) {
             resolve(false);
         }
@@ -171,7 +163,6 @@ async function grabAccessToken() {
 
 
                 let currentTime = Math.floor(Date.now() / 1000);
-
                 if ((decryptedKey.exp - currentTime) > 1000) {
                     resolve(found_access_token);
                     return;
@@ -179,7 +170,6 @@ async function grabAccessToken() {
             }
             // Check For Refresh Token
             if ((await keytar.getPassword('cauldroncli', keytarAccount)) === null) {
-                console.log(keytarAccount)
                 console.log(`🚨 You have not logged in please log in using the login command!`)
                 reject("user not logged in");
                 return;
@@ -189,8 +179,7 @@ async function grabAccessToken() {
             if (refresh_response.ok) {
                 let refreshJSON = await refresh_response.json();
                 let access_token = refreshJSON.access_token;
-                // noinspection ES6MissingAwait
-                keytar.setPassword('cauldronapi', keytarAccount, access_token);
+                await keytar.setPassword('cauldronapi', keytarAccount, access_token);
                 resolve(access_token);
             } else {
                 reject(refresh_response.error);
@@ -201,23 +190,25 @@ async function grabAccessToken() {
     });
 }
 
-
 async function refresh() {
     return new Promise(async (resolve, reject) => {
         try {
             let refresh = await keytar.getPassword('cauldroncli', keytarAccount);
-            let data = JSON.stringify({
-                token: refresh,
+            let data = qs.stringify({
+                grant_type:'refresh_token',
+                client_id:AUTH0_CLIENT,
+                refresh_token: refresh,
             });
             let config = {
                 method: 'post',
                 maxBodyLength: Infinity,
                 headers: {
-                    'Content-Type': 'application/json',
+                    'content-type': 'application/x-www-form-urlencoded',
                 },
                 body: data
             };
-            const response = await fetch(`${grabServerAddress(true)}admin/refresh_cli`, config);
+            /*const response = await fetch(`${grabServerAddress(true)}admin/refresh_cli`, config);*/
+            const response = await fetch(`${grabAuthServer()}/api/oauth/authorize/exchange`, config);
             resolve(response);
         } catch (e) {
             console.log(e)

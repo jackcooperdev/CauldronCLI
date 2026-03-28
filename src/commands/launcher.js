@@ -24,6 +24,7 @@ module.exports = {
         .option('-n, --headless', 'Skip Interactive Elements')
         .action(async (options) => {
             try {
+                console.log(options)
                 if (options.debug) {
                     cauldronLogger.level = 4;
                 }
@@ -37,7 +38,16 @@ module.exports = {
                         process.exit(1);
                     }
                 } else {
-                    mc_account = options.account;
+                    const currentAccounts = await getAuthedUsers();
+                    for (let account of currentAccounts) {
+                        if (account.value === options.account) {
+                            mc_account = account;
+                        }
+                    }
+                    if (!mc_account) {
+                        cauldronLogger.error('No Accounts Logged In! Run cauldroncli add')
+                        process.exit(1);
+                    }
                 }
                 cauldronLogger.debug(`Selected Account: ${mc_account.name}`);
                 cauldronLogger.info(`Starting Minecraft Version: ${options.mc_version} (${options.mc_loader}) with account ${mc_account.name}`);
@@ -53,9 +63,9 @@ module.exports = {
                 }
                 cauldronLogger.debug(profileInfo);
 
-                const startLaunch = await launchMinecraft(`quick-${options.mc_loader}-${options.mc_version}`, mc_account.value, profileInfo, options.install_only);
+                const startLaunch = await launchMinecraft(`quick-${options.mc_loader}-${options.mc_version}`, mc_account.value, profileInfo, options.dry);
                 cauldronLogger.info(`Started Session: ${startLaunch}`)
-                if (!options.install_only) {
+                if (!options.dry) {
                     await startMCListening();
                 }
                 process.exit(0)
@@ -89,7 +99,16 @@ module.exports = {
                         process.exit(1);
                     }
                 } else {
-                    mc_account = options.account;
+                    const currentAccounts = await getAuthedUsers();
+                    for (let account of currentAccounts) {
+                        if (account.value === options.account) {
+                            mc_account = account;
+                        }
+                    }
+                    if (!mc_account) {
+                        cauldronLogger.error('No Accounts Logged In! Run cauldroncli add')
+                        process.exit(1);
+                    }
                 }
                 cauldronLogger.debug(`Selected Account: ${mc_account.name}`);
 
@@ -153,10 +172,9 @@ module.exports = {
                             await createModpack(profileInfo)
                         }
                     }
-
-                    const startLaunch = await launchMinecraft(`${profileInfo._id}`, mc_account.value, profileInfo, options.install_only);
+                    const startLaunch = await launchMinecraft(`${profileInfo._id}`, mc_account.value, profileInfo, options.dry);
                     cauldronLogger.info(`Started Session: ${startLaunch}`)
-                    if (!options.install_only) {
+                    if (!options.dry) {
                         await startMCListening();
                     }
                     process.exit(0)

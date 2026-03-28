@@ -1,7 +1,7 @@
 ; cauldron_installer.iss
 [Setup]
 AppName=Cauldron CLI
-AppVersion=0.0.2
+AppVersion=0.0.3
 DefaultDirName={pf}\Cauldron
 DefaultGroupName=Cauldron
 OutputBaseFilename=cauldron-installer
