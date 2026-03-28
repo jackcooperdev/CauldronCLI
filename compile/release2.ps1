@@ -5,72 +5,86 @@ param(
     [string]$Target = "windows-x64-20.10.0"
 )
 
-# Fail fast on any error
+# Fail fast
 $ErrorActionPreference = "Stop"
 
 Write-Host "=== Cauldron Release Script ==="
 Write-Host "Tag: $Tag"
 Write-Host "Target: $Target"
 
-# Detect CI environment
+# Detect CI
 $IsCI = $env:GITHUB_ACTIONS -eq "true"
 
-# Validate tag format (v1.2.3)
+# Validate tag
 if ($Tag -notmatch "^v\d+\.\d+\.\d+$") {
-    Write-Host "ERROR: Tag must be in format vX.Y.Z (e.g. v1.2.3)"
+    Write-Host "ERROR: Tag must be in format vX.Y.Z"
     exit 1
 }
+
+# --- Resolve paths relative to script ---
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RootDir = Resolve-Path "$ScriptDir/.."
+
+Write-Host "ScriptDir: $ScriptDir"
+Write-Host "RootDir: $RootDir"
 
 # Names
 $BinaryName = "cauldroncli.exe"
 $BinaryNameWeb = "cauldronws.exe"
 $InstallerName = "cauldron-installer.exe"
 
-# Paths
-$EntryFile = "../dist/cli.cjs"
-$EntryFileWeb = "../src/utils/websocket.js"
-$InstallerScript = "cauldron_installer.iss"
-$outDir = "out"
+# Absolute paths
+$EntryFile = Join-Path $RootDir "dist/cli.cjs"
+$EntryFileWeb = Join-Path $RootDir "src/utils/websocket.js"
+$InstallerScript = Join-Path $RootDir "cauldron_installer.iss"
+$BuildScript = Join-Path $RootDir "build.js"
+$outDir = Join-Path $RootDir "out"
 
-# --- Check required tools ---
-foreach ($tool in @("git", "npx")) {
+# --- Tool checks ---
+foreach ($tool in @("git", "npx", "node")) {
     if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) {
-        Write-Host "ERROR: Required tool '$tool' is not installed or not in PATH."
+        Write-Host "ERROR: Required tool '$tool' not found in PATH."
         exit 1
     }
 }
 
-# gh is optional locally but required in CI
+# GitHub CLI optional
+$HasGh = $false
 if ($IsCI -or (Get-Command gh -ErrorAction SilentlyContinue)) {
     $HasGh = $true
-} else {
-    $HasGh = $false
 }
 
-# Inno Setup (auto-resolve path)
+# Inno Setup
 try {
     $InnoSetupPath = (Get-Command ISCC.exe -ErrorAction Stop).Source
 } catch {
-    Write-Host "ERROR: Inno Setup compiler (ISCC.exe) not found in PATH."
+    Write-Host "ERROR: Inno Setup (ISCC.exe) not found in PATH."
     exit 1
 }
 
 # --- Clean old artifacts ---
 Write-Host "Cleaning old build artifacts..."
-Remove-Item $BinaryName -ErrorAction Ignore
-Remove-Item $BinaryNameWeb -ErrorAction Ignore
-Remove-Item "Output\$InstallerName" -ErrorAction Ignore
+Remove-Item (Join-Path $RootDir $BinaryName) -ErrorAction Ignore
+Remove-Item (Join-Path $RootDir $BinaryNameWeb) -ErrorAction Ignore
+Remove-Item (Join-Path $RootDir "Output\$InstallerName") -ErrorAction Ignore
 
-# --- Build step ---
+# --- Build ---
 Write-Host "Running build.js..."
-node ../build.js
+if (-not (Test-Path $BuildScript)) {
+    Write-Host "ERROR: build.js not found at $BuildScript"
+    exit 1
+}
+node $BuildScript
 
+# Verify output
 if (-not (Test-Path $EntryFile)) {
-    Write-Host "ERROR: Entry file $EntryFile not found."
+    Write-Host "ERROR: Entry file not found: $EntryFile"
     exit 1
 }
 
 # --- Compile binaries ---
+Set-Location $RootDir
+
 Write-Host "Building CLI binary..."
 npx --yes nexe@5.0.0-beta.4 $EntryFile -t $Target -o $BinaryName --build
 
@@ -86,10 +100,10 @@ if (-not $IsCI) {
         git tag $Tag
         git push origin $Tag
     } else {
-        Write-Host "Git tag $Tag already exists."
+        Write-Host "Git tag already exists."
     }
 } else {
-    Write-Host "CI environment detected - skipping git tagging"
+    Write-Host "CI detected - skipping git tagging"
 }
 
 # --- GitHub Release ---
@@ -98,18 +112,18 @@ if ($HasGh) {
 
     $releaseCheck = gh release view $Tag 2>&1
 
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "Release already exists."
-    } else {
+    if ($LASTEXITCODE -ne 0) {
         Write-Host "Creating release..."
         gh release create $Tag --title "$Tag" --generate-notes
+    } else {
+        Write-Host "Release already exists."
     }
 
     Write-Host "Uploading binaries..."
     gh release upload $Tag $BinaryName --clobber
     gh release upload $Tag $BinaryNameWeb --clobber
 } else {
-    Write-Host "Skipping GitHub release (gh CLI not available)"
+    Write-Host "Skipping GitHub release (gh not available)"
 }
 
 # --- Prepare installer ---
@@ -119,26 +133,27 @@ if (-not (Test-Path $outDir)) {
     New-Item -ItemType Directory -Path $outDir | Out-Null
 }
 
-Copy-Item $BinaryName "$outDir\cauldroncli.exe" -Force
-Copy-Item $BinaryNameWeb "$outDir\cauldronws.exe" -Force
+Copy-Item $BinaryName (Join-Path $outDir "cauldroncli.exe") -Force
+Copy-Item $BinaryNameWeb (Join-Path $outDir "cauldronws.exe") -Force
 
-# Extract version (remove 'v')
+# Version
 $version = $Tag.TrimStart("v")
 
 # --- Build installer ---
 Write-Host "Building installer..."
 & $InnoSetupPath $InstallerScript /DAppVersion=$version
 
-# --- Verify installer ---
-if (-not (Test-Path "Output\$InstallerName")) {
+# Verify installer
+$InstallerOutput = Join-Path $RootDir "Output\$InstallerName"
+if (-not (Test-Path $InstallerOutput)) {
     Write-Host "ERROR: Installer not found after build."
     exit 1
 }
 
-# --- Upload installer ---
+# Upload installer
 if ($HasGh) {
     Write-Host "Uploading installer..."
-    gh release upload $Tag "Output\$InstallerName" --clobber
+    gh release upload $Tag $InstallerOutput --clobber
 }
 
 Write-Host "=== Release complete ==="
