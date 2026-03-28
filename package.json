@@ -20,9 +20,9 @@
   "description": "",
   "dependencies": {
     "@inquirer/prompts": "^7.4.1",
-    "@jackcooperdev/cauldronauthentication": "file:../CauldronAuthentication",
-    "@jackcooperdev/cauldronengine": "file:../CauldronEngine",
-    "@jackcooperdev/packwiz_js": "file:../packwiz_js",
+    "@jackcooperdev/cauldronauthentication": "workspace:*",
+    "@jackcooperdev/cauldronengine": "workspace:*",
+    "@jackcooperdev/packwiz_js": "workspace:*",
     "commander": "^13.1.0",
     "cryptr": "^6.3.0",
     "esbuild": "^0.25.2",

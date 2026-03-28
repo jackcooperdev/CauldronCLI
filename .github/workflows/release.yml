@@ -3,7 +3,7 @@ name: Build & Release (Windows)
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch:
 
 jobs:
@@ -21,59 +21,89 @@ jobs:
         with:
           node-version: 20
 
-      # 3. Install deps
+      # 3. Install pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      # 4. Get pnpm store path (for caching)
+      - name: Get pnpm store directory
+        shell: pwsh
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $env:GITHUB_ENV
+
+      # 5. Cache pnpm store
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      # 6. Install dependencies (WORKSPACES ENABLED)
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
-      # 5. Run build
+      # 7. Debug workspace (optional but useful)
+      - name: Debug workspace
+        run: |
+          echo "Root:"
+          pwd
+          echo "Packages:"
+          pnpm list -r --depth=0
+
+      # 8. Build project (esbuild)
       - name: Build project
-        run: node build.js
+        run: pnpm --filter cauldroncli run build || node build.js
 
-      # 6. Verify build output
+      # 9. Verify build output
       - name: Verify build output
+        shell: pwsh
         run: |
           if (!(Test-Path "dist/cli.cjs")) {
             Write-Error "dist/cli.cjs not found"
             exit 1
           }
 
-      # 7. Install Inno Setup
+      # 10. Install Inno Setup
       - name: Install Inno Setup
         run: choco install innosetup -y
 
-      # 8. Build binaries with nexe
+      # 11. Build CLI binary (nexe)
       - name: Build CLI binary
         run: npx --yes nexe@5.0.0-beta.4 dist/cli.cjs -t windows-x64-20.10.0 -o cauldroncli.exe --build
 
+      # 12. Build WebSocket binary
       - name: Build WebSocket binary
         run: npx --yes nexe@5.0.0-beta.4 src/utils/websocket.js -t windows-x64-20.10.0 -o cauldronws.exe --build
 
-      # 9. Prepare installer files
+      # 13. Prepare installer assets
       - name: Prepare installer files
         run: |
           mkdir out
           copy cauldroncli.exe out\cauldroncli.exe
           copy cauldronws.exe out\cauldronws.exe
 
-      # 10. Extract version
+      # 14. Extract version
       - name: Set version
-        id: version
+        shell: pwsh
         run: |
           $version = "${{ github.ref_name }}".TrimStart("v")
           echo "VERSION=$version" >> $env:GITHUB_ENV
 
-      # 11. Build installer
+      # 15. Build installer
       - name: Build installer
-        run: |
-          ISCC.exe cauldron_installer.iss /DAppVersion=${{ env.VERSION }}
+        run: ISCC.exe compile/cauldron_installer.iss /DAppVersion=${{ env.VERSION }}
 
-      # 12. Create release
+      # 16. Create GitHub release
       - name: Create release
         run: gh release create ${{ github.ref_name }} --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 13. Upload assets
+      # 17. Upload assets
       - name: Upload assets
         run: |
           gh release upload ${{ github.ref_name }} cauldroncli.exe --clobber
