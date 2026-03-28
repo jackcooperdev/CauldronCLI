@@ -35,12 +35,12 @@ jobs:
       - name: Build CLI binary (nexe)
         shell: pwsh
         run: |
-          nexe dist/cli.cjs -t windows-x64-20.10.0 -o cauldroncli.exe --build
+          nexe dist/cli.cjs -t windows-x64-20.10.0 -o cauldroncli.exe
 
       - name: Build WebSocket binary (nexe)
         shell: pwsh
         run: |
-          nexe src/utils/websocket.js -t windows-x64-20.10.0 -o cauldronws.exe --build
+          nexe src/utils/websocket.js -t windows-x64-20.10.0 -o cauldronws.exe
 
       - name: Prepare installer folder
         shell: pwsh
