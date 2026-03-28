@@ -1,0 +1,17 @@
+{
+  "version": "v1",
+  "packages": {
+    "@jackcooperdev/cauldronengine": {
+      "signature": "4668c0c939753480c3eee69acaec8dce",
+      "replaced": "^0.6.3"
+    },
+    "@jackcooperdev/cauldronauthentication": {
+      "signature": "f79e9b1d7e9bcba902e6e2d4f3be4634",
+      "replaced": "^1.3.4"
+    },
+    "@jackcooperdev/packwiz_js": {
+      "signature": "f60b3b87740066885f8f11ff5a6d71b3",
+      "replaced": "^1.0.8"
+    }
+  }
+}

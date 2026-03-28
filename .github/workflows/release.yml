@@ -1,113 +1,69 @@
-name: Build & Release (Windows)
+name: Build & Release Cauldron CLI
 
 on:
   push:
     tags:
-      - "v*"
-  workflow_dispatch:
+      - "v*.*.*"
 
 jobs:
-  release:
+  build-windows:
     runs-on: windows-latest
 
     steps:
-      # 1. Checkout
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      # 2. Setup Node
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # 3. Install pnpm
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      # 4. Get pnpm store path (for caching)
-      - name: Get pnpm store directory
-        shell: pwsh
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $env:GITHUB_ENV
-
-      # 5. Cache pnpm store
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      # 6. Install dependencies (WORKSPACES ENABLED)
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
-      # 7. Debug workspace (optional but useful)
-      - name: Debug workspace
-        run: |
-          echo "Root:"
-          pwd
-          echo "Packages:"
-          pnpm list -r --depth=0
-
-      # 8. Build project (esbuild)
-      - name: Build project
-        run: pnpm --filter cauldroncli run build || node build.js
-
-      # 9. Verify build output
-      - name: Verify build output
+      - name: Install tools
         shell: pwsh
         run: |
-          if (!(Test-Path "dist/cli.cjs")) {
-            Write-Error "dist/cli.cjs not found"
-            exit 1
-          }
+          npm install -g nexe@5.0.0-beta.4
+          
+          choco install innosetup -y
 
-      # 10. Install Inno Setup
-      - name: Install Inno Setup
-        run: choco install innosetup -y
+      - name: Build JS bundle (esbuild)
+        shell: pwsh
+        run: node build.js
 
-      # 11. Build CLI binary (nexe)
-      - name: Build CLI binary
-        run: npx --yes nexe@5.0.0-beta.4 dist/cli.cjs -t windows-x64-20.10.0 -o cauldroncli.exe --build
+      - name: Build CLI binary (nexe)
+        shell: pwsh
+        run: |
+          nexe dist/cli.cjs -t windows-x64-20.10.0 -o cauldroncli.exe --build
 
-      # 12. Build WebSocket binary
-      - name: Build WebSocket binary
-        run: npx --yes nexe@5.0.0-beta.4 src/utils/websocket.js -t windows-x64-20.10.0 -o cauldronws.exe --build
+      - name: Build WebSocket binary (nexe)
+        shell: pwsh
+        run: |
+          nexe src/utils/websocket.js -t windows-x64-20.10.0 -o cauldronws.exe --build
 
-      # 13. Prepare installer assets
-      - name: Prepare installer files
+      - name: Prepare installer folder
+        shell: pwsh
         run: |
           mkdir out
-          copy cauldroncli.exe out\cauldroncli.exe
-          copy cauldronws.exe out\cauldronws.exe
+          Copy-Item cauldroncli.exe out/cauldroncli.exe
+          Copy-Item cauldronws.exe out/cauldronws.exe
 
-      # 14. Extract version
-      - name: Set version
+      - name: Build Inno Setup installer
         shell: pwsh
         run: |
           $version = "${{ github.ref_name }}".TrimStart("v")
-          echo "VERSION=$version" >> $env:GITHUB_ENV
 
-      # 15. Build installer
-      - name: Build installer
-        run: ISCC.exe compile/cauldron_installer.iss /DAppVersion=${{ env.VERSION }}
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" `
+            compile/cauldron_installer.iss `
+            /DAppVersion=$version
 
-      # 16. Create GitHub release
-      - name: Create release
-        run: gh release create ${{ github.ref_name }} --generate-notes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # 17. Upload assets
-      - name: Upload assets
-        run: |
-          gh release upload ${{ github.ref_name }} cauldroncli.exe --clobber
-          gh release upload ${{ github.ref_name }} cauldronws.exe --clobber
-          gh release upload ${{ github.ref_name }} Output/cauldron-installer.exe --clobber
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          files: |
+            cauldroncli.exe
+            cauldronws.exe
+            Output/cauldron-installer.exe

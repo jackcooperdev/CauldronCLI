@@ -3,3 +3,4 @@ dist
 compile/out/*
 compile/Output/*
 compile/*.exe
+.yalc
