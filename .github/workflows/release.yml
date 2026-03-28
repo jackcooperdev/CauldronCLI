@@ -25,16 +25,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 4. Debug structure (TEMP - helps fix your current issue)
-      - name: Debug files
-        run: |
-          echo "PWD:"
-          pwd
-          echo "Root contents:"
-          dir
-          echo "Dist contents:"
-          dir dist || echo "No dist folder"
-
       # 5. Run build
       - name: Build project
         run: node build.js
