@@ -32,7 +32,6 @@
     "ora-classic": "^5.4.2",
     "qs": "^6.14.0",
     "rimraf": "^6.0.1",
-    "why-is-node-running": "^3.2.2",
     "ws": "^8.18.1"
   },
   "devDependencies": {

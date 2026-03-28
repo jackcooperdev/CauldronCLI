@@ -23,6 +23,7 @@ module.exports = {
         .action(async (options) => {
 
             if (!options.headless) {
+                console.log('perform generic')
                 await performMCLoginFlow();
                 process.exit(0)
             } else {

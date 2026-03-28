@@ -24,7 +24,7 @@ async function isDownloaded(version, loader) {
     return new Promise(async (resolve) => {
         if (version === 'release') {
             let vanillaManifest = await checkManifest('cauldron_version_manifest.json', 'https://launchermeta.mojang.com/mc/game/version_manifest.json', 'main');
-            let identified = await whatIsThis(version, loader, '', vanillaManifest, undefined);
+            let identified = await whatIsThis(version, vanillaManifest);
             version = identified.version;
         }
         let combined = `${version}-${loader}`;

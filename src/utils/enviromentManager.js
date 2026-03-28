@@ -16,6 +16,8 @@ let LOCAL_PROTOCOL = "http"
 
 let RESOURCE_SERVER = "https://resources.cauldronmc.com";
 
+let AUTH_SERVER = "https://lunaria-staging.lunariatech.co.uk";
+
 let DEVELOPMENT_MODE = false;
 
 let FORCE_MODE = false;
@@ -30,7 +32,8 @@ let defaultFile = {
     FORCE_MODE: FORCE_MODE,
     CAULDRON_PATH: CAULDRON_PATH,
     LOCAL_PROTOCOL: LOCAL_PROTOCOL,
-    RESOURCE_SERVER:RESOURCE_SERVER
+    RESOURCE_SERVER:RESOURCE_SERVER,
+    AUTH_SERVER:AUTH_SERVER,
 };
 
 
@@ -48,6 +51,7 @@ if (!fs.existsSync(path.join(os.homedir(), 'cauldroncli_admin.json'))) {
     FORCE_MODE = admin_file.FORCE_MODE;
     CAULDRON_PATH = admin_file.CAULDRON_PATH;
     process.env.CAULDRON_PATH = admin_file.CAULDRON_PATH;
+    AUTH_SERVER = admin_file.AUTH_SERVER;
     process.env.RESOURCE_SERVER = admin_file.RESOURCE_SERVER;
 }
 
@@ -65,6 +69,10 @@ function grabServerAddress(includeProtocol) {
     } else {
         return `${PROD_ADDRESS}/`;
     }
+}
+
+function grabAuthServer() {
+    return AUTH_SERVER;
 }
 
 
@@ -86,4 +94,4 @@ function getResourcePath() {
 }
 
 
-module.exports = {grabServerAddress, DEVELOPMENT_MODE, grabPackwizLocation, getEnginePath, getResourcePath};
+module.exports = {grabServerAddress, DEVELOPMENT_MODE, grabPackwizLocation, getEnginePath, getResourcePath, grabAuthServer};

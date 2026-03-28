@@ -24,6 +24,7 @@ module.exports = {
         .option('-n, --headless', 'Skip Interactive Elements')
         .action(async (options) => {
             try {
+                console.log(options)
                 if (options.debug) {
                     cauldronLogger.level = 4;
                 }
@@ -62,9 +63,9 @@ module.exports = {
                 }
                 cauldronLogger.debug(profileInfo);
 
-                const startLaunch = await launchMinecraft(`quick-${options.mc_loader}-${options.mc_version}`, mc_account.value, profileInfo, options.install_only);
+                const startLaunch = await launchMinecraft(`quick-${options.mc_loader}-${options.mc_version}`, mc_account.value, profileInfo, options.dry);
                 cauldronLogger.info(`Started Session: ${startLaunch}`)
-                if (!options.install_only) {
+                if (!options.dry) {
                     await startMCListening();
                 }
                 process.exit(0)
@@ -171,10 +172,9 @@ module.exports = {
                             await createModpack(profileInfo)
                         }
                     }
-
-                    const startLaunch = await launchMinecraft(`${profileInfo._id}`, mc_account.value, profileInfo, options.install_only);
+                    const startLaunch = await launchMinecraft(`${profileInfo._id}`, mc_account.value, profileInfo, options.dry);
                     cauldronLogger.info(`Started Session: ${startLaunch}`)
-                    if (!options.install_only) {
+                    if (!options.dry) {
                         await startMCListening();
                     }
                     process.exit(0)
