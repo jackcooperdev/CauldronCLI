@@ -14,55 +14,62 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      # 📥 Checkout
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 🟢 Node 20 (consistent everywhere)
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
+      # 📦 Install deps
       - name: Install dependencies
         run: npm ci
 
-      # 🔧 Build your CLI bundle
+      # 🔧 Build (esbuild → dist/cli.cjs)
       - name: Build CLI
         run: node build.js
 
-      # 🔍 Debug output (helps avoid silent failures)
+      # 🔍 Debug output (VERY useful if something breaks)
       - name: Verify dist
         run: |
-          echo "Listing dist directory"
+          echo "Dist contents:"
           ls -R dist || dir dist
 
-      # 📦 PACKAGE (macOS)
+      # 📦 Install pkg (CORRECT VERSION)
+      - name: Install pkg
+        run: npm install -g pkg@6.14.1
+
+      # 📦 Package macOS binary
       - name: Package macOS binary
         if: runner.os == 'macOS'
         run: |
-          npx pkg dist/cli.cjs \
+          pkg dist/cli.cjs \
             --targets node20-macos-x64,node20-macos-arm64 \
             --output dist/cauldroncli
 
-      # 📦 PACKAGE (Windows)
+      # 📦 Package Windows binary
       - name: Package Windows binary
         if: runner.os == 'Windows'
         run: |
-          npx pkg dist/cli.cjs ^
+          pkg dist/cli.cjs ^
             --targets node20-win-x64 ^
             --output dist/cauldroncli.exe
 
-      # 🧱 INSTALL NSIS (Windows only)
+      # 🧱 Install NSIS (Windows only)
       - name: Install NSIS
         if: runner.os == 'Windows'
         run: choco install nsis -y
 
-      # 🏗 BUILD INSTALLER (Windows only)
+      # 🏗 Build Installer (Windows only)
       - name: Build NSIS installer
         if: runner.os == 'Windows'
         run: |
           makensis installer/windows/installer.nsi
 
-      # 📦 Upload artifacts (both OS)
+      # 📦 Upload artifacts
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -71,7 +78,7 @@ jobs:
             dist/*
             CauldronCLI-Setup.exe
 
-  # 🚀 OPTIONAL: Create GitHub Release with installer
+  # 🚀 Create GitHub Release with all artifacts
   release:
     needs: build
     runs-on: ubuntu-latest
