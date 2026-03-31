@@ -1,16 +1,20 @@
-name: Build & Release Cauldron CLI
+name: Build & Release CauldronCLI
 
 on:
   push:
     tags:
-      - "v*.*.*"
+      - "v*"
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build:
+    strategy:
+      matrix:
+        os: [macos-latest, self-hosted]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node
@@ -21,49 +25,66 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install tools
-        shell: pwsh
-        run: |
-          npm install -g nexe@5.0.0-beta.4
-          
-          choco install innosetup -y
-
-      - name: Build JS bundle (esbuild)
-        shell: pwsh
+      # 🔧 Build your CLI bundle
+      - name: Build CLI
         run: node build.js
 
-      - name: Build CLI binary (nexe)
-        shell: pwsh
+      # 🔍 Debug output (helps avoid silent failures)
+      - name: Verify dist
         run: |
-          nexe dist/cli.cjs -t windows-x64-20.10.0 -o cauldroncli.exe
+          echo "Listing dist directory"
+          ls -R dist || dir dist
 
-      - name: Build WebSocket binary (nexe)
-        shell: pwsh
+      # 📦 PACKAGE (macOS)
+      - name: Package macOS binary
+        if: runner.os == 'macOS'
         run: |
-          nexe src/utils/websocket.js -t windows-x64-20.10.0 -o cauldronws.exe
+          npx pkg dist/cli.cjs \
+            --targets node20-macos-x64,node20-macos-arm64 \
+            --output dist/cauldroncli
 
-      - name: Prepare installer folder
-        shell: pwsh
+      # 📦 PACKAGE (Windows)
+      - name: Package Windows binary
+        if: runner.os == 'Windows'
         run: |
-          mkdir out
-          Copy-Item cauldroncli.exe out/cauldroncli.exe
-          Copy-Item cauldronws.exe out/cauldronws.exe
+          npx pkg dist/cli.cjs ^
+            --targets node20-win-x64 ^
+            --output dist/cauldroncli.exe
 
-      - name: Build Inno Setup installer
-        shell: pwsh
+      # 🧱 INSTALL NSIS (Windows only)
+      - name: Install NSIS
+        if: runner.os == 'Windows'
+        run: choco install nsis -y
+
+      # 🏗 BUILD INSTALLER (Windows only)
+      - name: Build NSIS installer
+        if: runner.os == 'Windows'
         run: |
-          $version = "${{ github.ref_name }}".TrimStart("v")
+          makensis installer/windows/installer.nsi
 
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" `
-            compile/cauldron_installer.iss `
-            /DAppVersion=$version
+      # 📦 Upload artifacts (both OS)
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cauldroncli-${{ runner.os }}
+          path: |
+            dist/*
+            CauldronCLI-Setup.exe
 
-      - name: Create GitHub Release
+  # 🚀 OPTIONAL: Create GitHub Release with installer
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
-          files: |
-            cauldroncli.exe
-            cauldronws.exe
-            Output/cauldron-installer.exe
+          files: artifacts/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
