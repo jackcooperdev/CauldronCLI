@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout repo
@@ -38,7 +38,8 @@ jobs:
 
       # Build installer
       - name: Build Installer
-        run: makensis installer.nsi
+        run: |
+          & "C:\Program Files (x86)\NSIS\makensis.exe" installer.nsi
 
       # Upload artifacts
       - name: Upload installer
