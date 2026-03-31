@@ -93,6 +93,14 @@ jobs:
           echo ^<startmode^>Automatic^</startmode^> >> dist\cauldronws.xml
           echo ^</service^> >> dist\cauldronws.xml
 
+      - name: TRACE EXACT BUILD OUTPUT
+        run: |
+          echo "PWD:"
+          cd
+      
+          echo "FULL TREE:"
+          dir /s /b
+
       # -------------------------
       # Install Scoop + NSIS
       # -------------------------
