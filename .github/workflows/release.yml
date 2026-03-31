@@ -1,97 +1,57 @@
-name: Build & Release CauldronCLI
+name: Build & Release
 
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 jobs:
   build:
-    strategy:
-      matrix:
-        os: [macos-latest, self-hosted]
-
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
 
     steps:
-      # 📥 Checkout
-      - name: Checkout
+      # Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      # 🟢 Node 20 (consistent everywhere)
+      # Setup Node
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # 📦 Install deps
+      # Install deps
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
-      # 🔧 Build (esbuild → dist/cli.cjs)
+      # Build (your esbuild step → outputs dist/cli.cjs)
       - name: Build CLI
         run: node build.js
 
-      # 🔍 Debug output (VERY useful if something breaks)
-      - name: Verify dist
-        run: |
-          echo "Dist contents:"
-          ls -R dist || dir dist
-
-      # 📦 Install pkg (CORRECT VERSION)
+      # Install pkg (REAL version)
       - name: Install pkg
-        run: npm install -g pkg@6.14.1
+        run: npm install -g pkg@5.8.1
 
-      # 📦 Package macOS binary
-      - name: Package macOS binary
-        if: runner.os == 'macOS'
-        run: |
-          pkg dist/cli.cjs \
-            --targets node20-macos-x64,node20-macos-arm64 \
-            --output dist/cauldroncli
-
-      # 📦 Package Windows binary
-      - name: Package Windows binary
-        if: runner.os == 'Windows'
+      # Package CLI (IMPORTANT: use cli.cjs, not ".")
+      - name: Package CLI binary
         run: |
           pkg dist/cli.cjs ^
-            --targets node20-win-x64 ^
+            --targets node18-win-x64 ^
             --output dist/cauldroncli.exe
 
-      # 🧱 Install NSIS (Windows only)
+      # Install NSIS
       - name: Install NSIS
-        if: runner.os == 'Windows'
         run: choco install nsis -y
 
-      # 🏗 Build Installer (Windows only)
-      - name: Build NSIS installer
-        if: runner.os == 'Windows'
-        run: |
-          makensis installer/windows/installer.nsi
+      # Build installer
+      - name: Build Installer
+        run: makensis installer.nsi
 
-      # 📦 Upload artifacts
-      - name: Upload artifacts
+      # Upload artifacts
+      - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: cauldroncli-${{ runner.os }}
+          name: cauldroncli-installer
           path: |
-            dist/*
-            CauldronCLI-Setup.exe
-
-  # 🚀 Create GitHub Release with all artifacts
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: artifacts/**/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            dist/cauldroncli.exe
+            dist/cauldroncli-setup.exe
