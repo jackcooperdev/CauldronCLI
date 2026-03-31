@@ -1,30 +1,28 @@
-; cauldron_installer.iss
-[Setup]
-AppName=Cauldron CLI
-AppVersion=0.0.3
-DefaultDirName={pf}\Cauldron
-DefaultGroupName=Cauldron
-OutputBaseFilename=cauldron-installer
-Compression=lzma
-SolidCompression=yes
-WizardStyle=modern
-LicenseFile=../LICENSE
+Outfile "CauldronInstaller.exe"
+InstallDir "$PROGRAMFILES\Cauldron"
 
-[Files]
-Source: "cauldroncli.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "nssm.exe"; DestDir: "{app}"; Flags: ignoreversion
+RequestExecutionLevel admin
 
+Page directory
+Page instfiles
 
-[Icons]
-Name: "{group}\Cauldron CLI"; Filename: "{app}\cauldroncli.exe"
-Name: "{group}\Uninstall Cauldron CLI"; Filename: "{uninstallexe}"
+Section "Install"
 
-[Registry]
-Root: HKCU; Subkey: "Environment"; ValueType: expandsz; ValueName: "Path"; ValueData: "{olddata};{app}"; Flags: preservestringtype
+  SetOutPath "$INSTDIR"
 
-[Run]
-Filename: "cmd.exe"; Parameters: "/C echo You may need to restart your computer or log out and back in to use 'cauldroncli' from the command line."; Flags: runhidden
+  ; Copy files
+  File "dist\cauldroncli.exe"
+  File "dist\cauldronws.exe"
+  File "dist\cauldronws-service.exe"
+  File "dist\cauldronws.xml"
 
-[UninstallRun]
-; Remove the service when uninstalling
-Filename: "{app}\nssm.exe"; Parameters: "remove CauldronWebSocketServer confirm"; WorkingDir: "{app}"; Flags: runhidden shellexec waituntilterminated
+  ; Install service
+  ExecWait '"$INSTDIR\cauldronws-service.exe" install'
+  ExecWait '"$INSTDIR\cauldronws-service.exe" start'
+
+  ; Add CLI to PATH
+  ReadRegStr $0 HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "Path"
+  StrCpy $0 "$0;$INSTDIR"
+  WriteRegExpandStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "Path" $0
+
+SectionEnd

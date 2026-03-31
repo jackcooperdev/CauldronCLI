@@ -1,16 +1,16 @@
-name: Build & Release
+name: Build Windows Installer
 
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   build:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node
@@ -18,34 +18,44 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
+      - name: Install deps
         run: npm install
 
-      - name: Build CLI
+      - name: Install build tools
+        run: |
+          npm install -g esbuild
+          npm install -g @yao-pkg/pkg
+
+      - name: Build JS bundles
         run: node build.js
 
-      # Install yao-pkg
-      - name: Install yao-pkg
-        run: npm install -g @yao-pkg/pkg
+      - name: Package binaries
+        run: |
+          pkg dist/cli.cjs --targets node18-win-x64 --output dist/cauldroncli.exe
+          pkg dist/ws.cjs  --targets node18-win-x64 --output dist/cauldronws.exe
 
-      # Package CLI
-      - name: Package CLI binary
-        run: pkg dist/cli.cjs --targets node20-win-x64 --output dist/cauldroncli.exe
+      - name: Download WinSW
+        run: |
+          curl -L -o dist/cauldronws-service.exe https://github.com/winsw/winsw/releases/latest/download/WinSW-x64.exe
 
-      # Install NSIS
+      - name: Create service config
+        run: |
+          echo ^<service^> > dist/cauldronws.xml
+          echo   ^<id^>CauldronWS^</id^> >> dist/cauldronws.xml
+          echo   ^<name^>Cauldron WebSocket Service^</name^> >> dist/cauldronws.xml
+          echo   ^<executable^>cauldronws.exe^</executable^> >> dist/cauldronws.xml
+          echo   ^<startmode^>Automatic^</startmode^> >> dist/cauldronws.xml
+          echo ^</service^> >> dist/cauldronws.xml
+
       - name: Install NSIS
         run: choco install nsis -y
 
-      # Build installer
-      - name: Build Installer
+      - name: Build installer
         run: |
           & "C:\Program Files (x86)\NSIS\makensis.exe" installer/setup.nsi
 
-      # Upload artifacts
-      - name: Upload installer
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: cauldroncli-installer
-          path: |
-            dist/cauldroncli.exe
-            dist/cauldroncli-setup.exe
+          name: cauldron-installer
+          path: CauldronInstaller.exe

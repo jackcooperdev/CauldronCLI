@@ -1,5 +1,5 @@
 // build.js
-const { build } = require('esbuild');
+const esbuild = require('esbuild');
 const path = require('path');
 const fs = require('fs');
 
@@ -14,21 +14,33 @@ if (!fs.existsSync(distDir)) {
     fs.mkdirSync(distDir);
 }
 
-build({
-    entryPoints: [entry],
-    bundle: true,
-    platform: 'node',
-    format: 'cjs',
-    outfile: outfile,
-    external: ['node:*','esbuild'],
-    minify: false,
-    sourcemap: true,
-    target: ['node20'],
-}).then(() => {
-    console.log('Build complete!');
-    console.log('Entry:', entry);
-    console.log('Output:', outfile);
-}).catch((err) => {
-    console.error(err);
-    process.exit(1);
-});
+async function build() {
+    await esbuild.build({
+        entryPoints: [entry],
+        bundle: true,
+        platform: 'node',
+        format: 'cjs',
+        outfile: outfile,
+        external: ['node:*','esbuild'],
+        minify: false,
+        sourcemap: true,
+        target: ['node20'],
+    }).then(() => {
+        console.log('Build complete!');
+        console.log('Entry:', entry);
+        console.log('Output:', outfile);
+    }).catch((err) => {
+        console.error(err);
+        process.exit(1);
+    });
+
+    await esbuild.build({
+        entryPoints: ["src/ws-entry.js"],
+        bundle: true,
+        platform: "node",
+        outfile: "dist/ws.cjs",
+    });
+
+}
+
+build()
