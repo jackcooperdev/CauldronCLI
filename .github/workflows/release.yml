@@ -36,7 +36,7 @@ jobs:
 
       - name: Download WinSW
         run: |
-          curl -L -o dist/cauldronws-service.exe https://github.com/winsw/winsw/releases/latest/download/WinSW-x64.exe
+          curl.exe -L "https://github.com/winsw/winsw/releases/latest/download/WinSW-x64.exe" -o dist\cauldronws-service.exe
 
       - name: Create service config
         run: |
