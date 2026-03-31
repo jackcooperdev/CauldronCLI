@@ -4,8 +4,8 @@ name: Build Installer
 on:
   push:
     tags:
-      - "v*"           # trigger on version tags e.g. v1.0.0
-  workflow_dispatch:   # allow manual runs
+      - "v*"
+  workflow_dispatch:
 
 jobs:
   build:
@@ -30,37 +30,48 @@ jobs:
       - name: Build
         run: node build.js
 
-      # ── Read version from package.json ──────────────────────────────────────
-      - name: Get version
+      # ── Read version + name from package.json ───────────────────────────────
+      - name: Get package info
         id: pkg
         run: |
-          $version = (Get-Content package.json | ConvertFrom-Json).version
-          $name    = (Get-Content package.json | ConvertFrom-Json).name
-          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
-          echo "NAME=$name"       >> $env:GITHUB_OUTPUT
-        shell: pwsh
+          $json = Get-Content package.json | ConvertFrom-Json
+          echo "VERSION=$($json.version)" >> $env:GITHUB_OUTPUT
+          echo "NAME=$($json.name)" >> $env:GITHUB_OUTPUT
 
-      # ── Download bundled Node.js (the one shipped inside the installer) ──────
+      # ── Download bundled Node.js (shipped inside the installer) ─────────────
       - name: Download Node.js binary for bundling
         run: |
           $nodeVersion = "20.19.0"
           $url = "https://nodejs.org/dist/v$nodeVersion/node-v$nodeVersion-win-x64.zip"
           Invoke-WebRequest $url -OutFile node.zip
           Expand-Archive node.zip -DestinationPath node-tmp
-          New-Item -ItemType Directory -Force -Path tools
+          New-Item -ItemType Directory -Force -Path tools | Out-Null
           Copy-Item "node-tmp\node-v$nodeVersion-win-x64\node.exe" "tools\node.exe"
           Remove-Item node.zip, node-tmp -Recurse -Force
-        shell: pwsh
 
       # ── Download NSSM ────────────────────────────────────────────────────────
       - name: Download NSSM
         run: |
-          $url = "https://nssm.cc/ci/nssm-2.24-101-g897c7ad.zip"
+          $url = "https://nssm.cc/release/nssm-2.24.zip"
           Invoke-WebRequest $url -OutFile nssm.zip
           Expand-Archive nssm.zip -DestinationPath nssm-tmp
-          Copy-Item "nssm-tmp\nssm-2.24-101-g897c7ad\win64\nssm.exe" "tools\nssm.exe"
+          Copy-Item "nssm-tmp\nssm-2.24\win64\nssm.exe" "tools\nssm.exe"
           Remove-Item nssm.zip, nssm-tmp -Recurse -Force
-        shell: pwsh
+
+      # ── Install NSIS ─────────────────────────────────────────────────────────
+      - name: Install NSIS
+        run: choco install nsis --no-progress -y
+
+      # ── Install EnVar plugin ─────────────────────────────────────────────────
+      - name: Install EnVar NSIS plugin
+        run: |
+          $url = "https://github.com/GsNSIS/EnVar/releases/download/v0.3.1/EnVar-Plugin.zip"
+          Invoke-WebRequest $url -OutFile envar.zip
+          Expand-Archive envar.zip -DestinationPath envar-tmp
+          $nsisPluginDir = "C:\Program Files (x86)\NSIS\Plugins\x86-unicode"
+          New-Item -ItemType Directory -Force -Path $nsisPluginDir | Out-Null
+          Copy-Item "envar-tmp\Plugins\x86-unicode\EnVar.dll" $nsisPluginDir
+          Remove-Item envar.zip, envar-tmp -Recurse -Force
 
       # ── Patch version + name into the NSI script ─────────────────────────────
       - name: Patch installer.nsi
@@ -71,15 +82,10 @@ jobs:
             -replace 'YOUR_APP_NAME', $name `
             -replace '!define APP_VERSION "1.0.0"', "!define APP_VERSION `"$version`"" `
           | Set-Content installer.nsi
-        shell: pwsh
 
-      # ── Compile the NSIS installer ───────────────────────────────────────────
+      # ── Compile the installer ────────────────────────────────────────────────
       - name: Compile NSIS installer
-        uses: joncloud/makensis-action@v4
-        with:
-          script-file: installer.nsi
-          additional-plugin-paths: |
-            ${{ github.workspace }}\nsis-plugins
+        run: makensis installer.nsi
 
       # ── Upload installer as artifact ─────────────────────────────────────────
       - name: Upload installer artifact
