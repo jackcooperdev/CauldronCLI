@@ -7,37 +7,30 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: self-hosted
 
     steps:
-      # Checkout
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Setup Node
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # Install deps
       - name: Install dependencies
         run: npm install
 
-      # Build (your esbuild step → outputs dist/cli.cjs)
       - name: Build CLI
         run: node build.js
 
-      # Install pkg (REAL version)
-      - name: Install pkg
-        run: npm install -g pkg@5.8.1
+      # Install yao-pkg
+      - name: Install yao-pkg
+        run: npm install -g @yao-pkg/pkg
 
-      # Package CLI (IMPORTANT: use cli.cjs, not ".")
+      # Package CLI
       - name: Package CLI binary
-        run: |
-          pkg dist/cli.cjs ^
-            --targets node18-win-x64 ^
-            --output dist/cauldroncli.exe
+        run: pkg dist/cli.cjs --targets node20-win-x64 --output dist/cauldroncli.exe
 
       # Install NSIS
       - name: Install NSIS
