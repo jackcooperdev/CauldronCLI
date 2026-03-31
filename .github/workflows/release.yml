@@ -1,146 +1,96 @@
-name: Build Cauldron Windows Installer
+# .github/workflows/build.yml
+name: Build Installer
 
 on:
   push:
     tags:
-      - "v*"
+      - "v*"           # trigger on version tags e.g. v1.0.0
+  workflow_dispatch:   # allow manual runs
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: self-hosted
 
     steps:
-      # -------------------------
-      # Checkout repo
-      # -------------------------
+      # ── Checkout ────────────────────────────────────────────────────────────
       - name: Checkout
         uses: actions/checkout@v4
 
-      # -------------------------
-      # Node setup
-      # -------------------------
-      - name: Setup Node
+      # ── Node (for building your project) ────────────────────────────────────
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: "npm"
 
-      # -------------------------
-      # Install dependencies
-      # -------------------------
       - name: Install dependencies
         run: npm ci
 
-      # -------------------------
-      # Install build tools
-      # -------------------------
-      - name: Install build tools
-        run: |
-          npm install -g esbuild
-          npm install -g @yao-pkg/pkg
-
-      # -------------------------
-      # Build JS entrypoints
-      # -------------------------
-      - name: Build JS
+      # ── Build cli.cjs + ws.cjs ──────────────────────────────────────────────
+      - name: Build
         run: node build.js
 
-      # -------------------------
-      # Package CLI binary
-      # -------------------------
-      - name: Build CLI
+      # ── Read version from package.json ──────────────────────────────────────
+      - name: Get version
+        id: pkg
         run: |
-          pkg dist/cli.cjs --targets node18-win-x64 --output dist/cauldroncli.exe
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          $name    = (Get-Content package.json | ConvertFrom-Json).name
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+          echo "NAME=$name"       >> $env:GITHUB_OUTPUT
+        shell: pwsh
 
-      # -------------------------
-      # Package WebSocket binary
-      # -------------------------
-      - name: Build WebSocket
+      # ── Download bundled Node.js (the one shipped inside the installer) ──────
+      - name: Download Node.js binary for bundling
         run: |
-          pkg dist/ws.cjs --targets node18-win-x64 --output dist/cauldronws.exe
+          $nodeVersion = "20.19.0"
+          $url = "https://nodejs.org/dist/v$nodeVersion/node-v$nodeVersion-win-x64.zip"
+          Invoke-WebRequest $url -OutFile node.zip
+          Expand-Archive node.zip -DestinationPath node-tmp
+          New-Item -ItemType Directory -Force -Path tools
+          Copy-Item "node-tmp\node-v$nodeVersion-win-x64\node.exe" "tools\node.exe"
+          Remove-Item node.zip, node-tmp -Recurse -Force
+        shell: pwsh
 
-      # -------------------------
-      # HARD VERIFY OUTPUT (IMPORTANT)
-      # -------------------------
-      - name: Verify dist output
-        shell: cmd
+      # ── Download NSSM ────────────────────────────────────────────────────────
+      - name: Download NSSM
         run: |
-          echo === DIST CONTENTS ===
-          dir dist
+          $url = "https://nssm.cc/ci/nssm-2.24-101-g897c7ad.zip"
+          Invoke-WebRequest $url -OutFile nssm.zip
+          Expand-Archive nssm.zip -DestinationPath nssm-tmp
+          Copy-Item "nssm-tmp\nssm-2.24-101-g897c7ad\win64\nssm.exe" "tools\nssm.exe"
+          Remove-Item nssm.zip, nssm-tmp -Recurse -Force
+        shell: pwsh
 
-          if not exist dist\cauldroncli.exe exit 1
-          if not exist dist\cauldronws.exe exit 1
-
-      # -------------------------
-      # Download WinSW (service wrapper)
-      # -------------------------
-      - name: Download WinSW
-        shell: powershell
+      # ── Patch version + name into the NSI script ─────────────────────────────
+      - name: Patch installer.nsi
         run: |
-          curl.exe -L `
-            "https://github.com/winsw/winsw/releases/latest/download/WinSW-x64.exe" `
-            -o dist\cauldronws-service.exe
+          $name    = "${{ steps.pkg.outputs.NAME }}"
+          $version = "${{ steps.pkg.outputs.VERSION }}"
+          (Get-Content installer.nsi) `
+            -replace 'YOUR_APP_NAME', $name `
+            -replace '!define APP_VERSION "1.0.0"', "!define APP_VERSION `"$version`"" `
+          | Set-Content installer.nsi
+        shell: pwsh
 
-      # -------------------------
-      # Create service config
-      # -------------------------
-      - name: Create WinSW config
-        shell: cmd
-        run: |
-          echo ^<service^> > dist\cauldronws.xml
-          echo ^<id^>CauldronWS^</id^> >> dist\cauldronws.xml
-          echo ^<name^>Cauldron WebSocket Service^</name^> >> dist\cauldronws.xml
-          echo ^<executable^>cauldronws.exe^</executable^> >> dist\cauldronws.xml
-          echo ^<startmode^>Automatic^</startmode^> >> dist\cauldronws.xml
-          echo ^</service^> >> dist\cauldronws.xml
+      # ── Compile the NSIS installer ───────────────────────────────────────────
+      - name: Compile NSIS installer
+        uses: joncloud/makensis-action@v4
+        with:
+          script-file: installer.nsi
+          additional-plugin-paths: |
+            ${{ github.workspace }}\nsis-plugins
 
-      - name: TRACE EXACT BUILD OUTPUT
-        run: |
-          echo "PWD:"
-          cd
-      
-          echo "FULL TREE:"
-          dir /s /b
-
-      # -------------------------
-      # Install Scoop + NSIS
-      # -------------------------
-      - name: Install Scoop + NSIS
-        shell: powershell
-        run: |
-          Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-
-          iwr -useb get.scoop.sh | iex
-
-          scoop bucket add extras
-          scoop install nsis
-
-      # -------------------------
-      # CRITICAL: fix PATH for Scoop tools
-      # -------------------------
-      - name: Add Scoop to PATH
-        shell: powershell
-        run: |
-          echo "$env:USERPROFILE\scoop\shims" >> $env:GITHUB_PATH
-
-      # -------------------------
-      # Verify NSIS is available
-      # -------------------------
-      - name: Verify NSIS
-        run: |
-          makensis -VERSION
-
-      # -------------------------
-      # Build installer
-      # -------------------------
-      - name: Build installer
-        run: |
-          makensis installer/setup.nsi
-
-      # -------------------------
-      # Upload installer
-      # -------------------------
-      - name: Upload installer
+      # ── Upload installer as artifact ─────────────────────────────────────────
+      - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
-          name: CauldronInstaller
-          path: CauldronInstaller.exe
+          name: ${{ steps.pkg.outputs.NAME }}-${{ steps.pkg.outputs.VERSION }}-setup
+          path: dist\*-setup.exe
+
+      # ── Attach to GitHub Release (only on tag pushes) ────────────────────────
+      - name: Upload to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist\*-setup.exe
