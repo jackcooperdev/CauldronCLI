@@ -20,7 +20,7 @@ build({
     platform: 'node',
     format: 'cjs',
     outfile: outfile,
-    external: ['node:*'],
+    external: ['node:*','esbuild'],
     minify: false,
     sourcemap: true,
     target: ['node20'],
