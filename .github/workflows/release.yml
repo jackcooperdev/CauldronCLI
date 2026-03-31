@@ -39,7 +39,7 @@ jobs:
       # Build installer
       - name: Build Installer
         run: |
-          & "C:\Program Files (x86)\NSIS\makensis.exe" installer.nsi
+          & "C:\Program Files (x86)\NSIS\makensis.exe" installer/setup.nsi
 
       # Upload artifacts
       - name: Upload installer
