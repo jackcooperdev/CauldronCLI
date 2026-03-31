@@ -1,4 +1,4 @@
-name: Build Windows Installer
+name: Build Cauldron Windows Installer
 
 on:
   push:
@@ -7,55 +7,132 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: windows-latest
 
     steps:
+      # -------------------------
+      # Checkout repo
+      # -------------------------
       - name: Checkout
         uses: actions/checkout@v4
 
+      # -------------------------
+      # Node setup
+      # -------------------------
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install deps
-        run: npm install
+      # -------------------------
+      # Install dependencies
+      # -------------------------
+      - name: Install dependencies
+        run: npm ci
 
+      # -------------------------
+      # Install build tools
+      # -------------------------
       - name: Install build tools
         run: |
           npm install -g esbuild
           npm install -g @yao-pkg/pkg
 
-      - name: Build JS bundles
+      # -------------------------
+      # Build JS entrypoints
+      # -------------------------
+      - name: Build JS
         run: node build.js
 
-      - name: Package binaries
+      # -------------------------
+      # Package CLI binary
+      # -------------------------
+      - name: Build CLI
         run: |
           pkg dist/cli.cjs --targets node18-win-x64 --output dist/cauldroncli.exe
-          pkg dist/ws.cjs  --targets node18-win-x64 --output dist/cauldronws.exe
 
+      # -------------------------
+      # Package WebSocket binary
+      # -------------------------
+      - name: Build WebSocket
+        run: |
+          pkg dist/ws.cjs --targets node18-win-x64 --output dist/cauldronws.exe
+
+      # -------------------------
+      # HARD VERIFY OUTPUT (IMPORTANT)
+      # -------------------------
+      - name: Verify dist output
+        shell: cmd
+        run: |
+          echo === DIST CONTENTS ===
+          dir dist
+
+          if not exist dist\cauldroncli.exe exit 1
+          if not exist dist\cauldronws.exe exit 1
+
+      # -------------------------
+      # Download WinSW (service wrapper)
+      # -------------------------
       - name: Download WinSW
+        shell: powershell
         run: |
-          curl.exe -L "https://github.com/winsw/winsw/releases/latest/download/WinSW-x64.exe" -o dist\cauldronws-service.exe
+          curl.exe -L `
+            "https://github.com/winsw/winsw/releases/latest/download/WinSW-x64.exe" `
+            -o dist\cauldronws-service.exe
 
-      - name: Create service config
+      # -------------------------
+      # Create service config
+      # -------------------------
+      - name: Create WinSW config
+        shell: cmd
         run: |
-          echo ^<service^> > dist/cauldronws.xml
-          echo   ^<id^>CauldronWS^</id^> >> dist/cauldronws.xml
-          echo   ^<name^>Cauldron WebSocket Service^</name^> >> dist/cauldronws.xml
-          echo   ^<executable^>cauldronws.exe^</executable^> >> dist/cauldronws.xml
-          echo   ^<startmode^>Automatic^</startmode^> >> dist/cauldronws.xml
-          echo ^</service^> >> dist/cauldronws.xml
+          echo ^<service^> > dist\cauldronws.xml
+          echo ^<id^>CauldronWS^</id^> >> dist\cauldronws.xml
+          echo ^<name^>Cauldron WebSocket Service^</name^> >> dist\cauldronws.xml
+          echo ^<executable^>cauldronws.exe^</executable^> >> dist\cauldronws.xml
+          echo ^<startmode^>Automatic^</startmode^> >> dist\cauldronws.xml
+          echo ^</service^> >> dist\cauldronws.xml
 
-      - name: Install NSIS
-        run: choco install nsis -y
+      # -------------------------
+      # Install Scoop + NSIS
+      # -------------------------
+      - name: Install Scoop + NSIS
+        shell: powershell
+        run: |
+          Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
 
+          iwr -useb get.scoop.sh | iex
+
+          scoop bucket add extras
+          scoop install nsis
+
+      # -------------------------
+      # CRITICAL: fix PATH for Scoop tools
+      # -------------------------
+      - name: Add Scoop to PATH
+        shell: powershell
+        run: |
+          echo "$env:USERPROFILE\scoop\shims" >> $env:GITHUB_PATH
+
+      # -------------------------
+      # Verify NSIS is available
+      # -------------------------
+      - name: Verify NSIS
+        run: |
+          makensis -VERSION
+
+      # -------------------------
+      # Build installer
+      # -------------------------
       - name: Build installer
         run: |
-          & "C:\Program Files (x86)\NSIS\makensis.exe" installer/setup.nsi
+          makensis installer/setup.nsi
 
-      - name: Upload artifact
+      # -------------------------
+      # Upload installer
+      # -------------------------
+      - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: cauldron-installer
+          name: CauldronInstaller
           path: CauldronInstaller.exe
