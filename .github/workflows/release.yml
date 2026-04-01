@@ -1,5 +1,5 @@
 # .github/workflows/build.yml
-name: Build Installer
+name: Build Release
 
 on:
   push:
@@ -12,11 +12,11 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # ── Checkout ────────────────────────────────────────────────────────────
+      # ── Checkout ─────────────────────────────────────────────────────────────
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ── Node (for building your project) ────────────────────────────────────
+      # ── Node (for building your project) ─────────────────────────────────────
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -26,11 +26,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # ── Build cli.cjs + ws.cjs ──────────────────────────────────────────────
+      # ── Build cli.cjs + ws.cjs ────────────────────────────────────────────────
       - name: Build
         run: node build.js
 
-      # ── Read version + name from package.json ───────────────────────────────
+      # ── Read version + name from package.json ─────────────────────────────────
       - name: Get package info
         id: pkg
         run: |
@@ -38,65 +38,57 @@ jobs:
           echo "VERSION=$($json.version)" >> $env:GITHUB_OUTPUT
           echo "NAME=$($json.name)" >> $env:GITHUB_OUTPUT
 
-      # ── Download bundled Node.js (shipped inside the installer) ─────────────
-      - name: Download Node.js binary for bundling
+      # ── Download Node.js binary to bundle ─────────────────────────────────────
+      - name: Download Node.js binary
         run: |
           $nodeVersion = "20.19.0"
           $url = "https://nodejs.org/dist/v$nodeVersion/node-v$nodeVersion-win-x64.zip"
           Invoke-WebRequest $url -OutFile node.zip
           Expand-Archive node.zip -DestinationPath node-tmp
-          New-Item -ItemType Directory -Force -Path tools | Out-Null
-          Copy-Item "node-tmp\node-v$nodeVersion-win-x64\node.exe" "tools\node.exe"
+          Copy-Item "node-tmp\node-v$nodeVersion-win-x64\node.exe" "dist\node.exe"
           Remove-Item node.zip, node-tmp -Recurse -Force
 
-      # ── Download NSSM ────────────────────────────────────────────────────────
-      - name: Download NSSM
+      # ── Download NSSM via Chocolatey (already installed on runner) ────────────
+      - name: Get NSSM exe
         run: |
-          $url = "https://nssm.cc/release/nssm-2.24.zip"
-          Invoke-WebRequest $url -OutFile nssm.zip
-          Expand-Archive nssm.zip -DestinationPath nssm-tmp
-          Copy-Item "nssm-tmp\nssm-2.24\win64\nssm.exe" "tools\nssm.exe"
-          Remove-Item nssm.zip, nssm-tmp -Recurse -Force
+          choco install nssm --no-progress -y
+          $nssmPath = (Get-Command nssm).Source
+          Copy-Item $nssmPath "dist\nssm.exe"
 
-      # ── Install NSIS ─────────────────────────────────────────────────────────
-      - name: Install NSIS
-        run: choco install nsis --no-progress -y
-
-      # ── Install EnVar plugin ─────────────────────────────────────────────────
-      - name: Install EnVar NSIS plugin
-        run: |
-          $url = "https://github.com/GsNSIS/EnVar/releases/download/v0.3.1/EnVar-Plugin.zip"
-          Invoke-WebRequest $url -OutFile envar.zip
-          Expand-Archive envar.zip -DestinationPath envar-tmp
-          $nsisPluginDir = "C:\Program Files (x86)\NSIS\Plugins\x86-unicode"
-          New-Item -ItemType Directory -Force -Path $nsisPluginDir | Out-Null
-          Copy-Item "envar-tmp\Plugins\x86-unicode\EnVar.dll" $nsisPluginDir
-          Remove-Item envar.zip, envar-tmp -Recurse -Force
-
-      # ── Patch version + name into the NSI script ─────────────────────────────
-      - name: Patch installer.nsi
+      # ── Bundle everything into a zip ──────────────────────────────────────────
+      - name: Create release zip
         run: |
           $name    = "${{ steps.pkg.outputs.NAME }}"
           $version = "${{ steps.pkg.outputs.VERSION }}"
-          (Get-Content installer.nsi) `
-            -replace 'YOUR_APP_NAME', $name `
-            -replace '!define APP_VERSION "1.0.0"', "!define APP_VERSION `"$version`"" `
-          | Set-Content installer.nsi
+          $zipName = "$name-$version-release.zip"
 
-      # ── Compile the installer ────────────────────────────────────────────────
-      - name: Compile NSIS installer
-        run: makensis installer.nsi
+          # dist\ now contains: cli.cjs, ws.cjs, node.exe, nssm.exe
+          Compress-Archive -Path "dist\*" -DestinationPath $zipName
+          echo "ZIP_NAME=$zipName" >> $env:GITHUB_OUTPUT
+        id: zip
 
-      # ── Upload installer as artifact ─────────────────────────────────────────
-      - name: Upload installer artifact
+      # ── Generate SHA256 checksum ──────────────────────────────────────────────
+      - name: Generate checksum
+        run: |
+          $zipName = "${{ steps.zip.outputs.ZIP_NAME }}"
+          $hash = (Get-FileHash $zipName -Algorithm SHA256).Hash
+          Set-Content "$zipName.sha256" $hash
+          Write-Host "SHA256: $hash"
+
+      # ── Upload as artifact (for non-tag runs / testing) ───────────────────────
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.pkg.outputs.NAME }}-${{ steps.pkg.outputs.VERSION }}-setup
-          path: dist\*-setup.exe
+          name: ${{ steps.pkg.outputs.NAME }}-${{ steps.pkg.outputs.VERSION }}-release
+          path: |
+            ${{ steps.zip.outputs.ZIP_NAME }}
+            ${{ steps.zip.outputs.ZIP_NAME }}.sha256
 
-      # ── Attach to GitHub Release (only on tag pushes) ────────────────────────
+      # ── Attach to GitHub Release on tag push ──────────────────────────────────
       - name: Upload to GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist\*-setup.exe
+          files: |
+            ${{ steps.zip.outputs.ZIP_NAME }}
+            ${{ steps.zip.outputs.ZIP_NAME }}.sha256
