@@ -50,9 +50,8 @@ jobs:
           Remove-Item node.zip, node-tmp -Recurse -Force
 
       # ── Download NSSM via Chocolatey (already installed on runner) ────────────
-      - name: Get NSSM exe
-        run: |
-            Invoke-WebRequest "https://github.com/nicholaswilde/nssm/releases/download/v2.24.101/nssm.exe" -OutFile "dist\nssm.exe"
+      - name: Copy NSSM
+        run: Copy-Item "tools\nssm.exe" "dist\nssm.exe"
 
       # ── Bundle everything into a zip ──────────────────────────────────────────
       - name: Create release zip
