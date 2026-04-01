@@ -52,9 +52,7 @@ jobs:
       # ── Download NSSM via Chocolatey (already installed on runner) ────────────
       - name: Get NSSM exe
         run: |
-          choco install nssm --no-progress -y
-          $nssmPath = (Get-Command nssm).Source
-          Copy-Item $nssmPath "dist\nssm.exe"
+            Invoke-WebRequest "https://github.com/nicholaswilde/nssm/releases/download/v2.24.101/nssm.exe" -OutFile "dist\nssm.exe"
 
       # ── Bundle everything into a zip ──────────────────────────────────────────
       - name: Create release zip

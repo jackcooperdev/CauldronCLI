@@ -8,7 +8,6 @@ const {sendToServer} = require("../utils/apiCommunication");
 const {downloadProfiles, getProfiles} = require("../libs/profileManager");
 const {addMod} = require("../libs/modManager");
 const {logout} = require("../libs/authentication");
-const {version} = require("esbuild");
 const {getAuthedUsers} = require("../libs/minecraft-auth");
 // No need for fs or path modules since we're fetching from a URL
 
