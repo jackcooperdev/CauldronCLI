@@ -23,18 +23,12 @@ module.exports = {
         .action(async (options) => {
 
             if (!options.headless) {
-                console.log('perform generic')
                 await performMCLoginFlow();
-                process.exit(0)
             } else {
                 if (!options.device_code) {
-                    let loginCode = await startMCAccount();
-                    console.log(loginCode.data);
-                    process.exit(0);
+                    await startMCAccount(options.headless);
                 } else {
-                    let response_message = await performMCLoginFlow(options.device_code);
-                    console.log(response_message);
-                    process.exit(0)
+                    await performMCLoginFlow(options.device_code,options.headless);
                 }
             }
 

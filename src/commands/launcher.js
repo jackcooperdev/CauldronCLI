@@ -66,7 +66,7 @@ module.exports = {
                 const startLaunch = await launchMinecraft(`quick-${options.mc_loader}-${options.mc_version}`, mc_account.value, profileInfo, options.dry);
                 cauldronLogger.info(`Started Session: ${startLaunch}`)
                 if (!options.dry) {
-                    await startMCListening();
+                    //await startMCListening();
                 }
                 process.exit(0)
             } catch (error) {

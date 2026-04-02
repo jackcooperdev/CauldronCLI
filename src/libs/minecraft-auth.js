@@ -25,6 +25,7 @@ const { verifyMinecraft } = require('@jackcooperdev/cauldronauthentication/mas')
 const { sendToServer } = require('../utils/apiCommunication.js');
 const { getEnginePath } = require("../utils/enviromentManager.js");
 const { exec } = require("child_process");
+const {createOutput} = require("../utils/output");
 const CAULDRON_PATH = getEnginePath();
 // Not Secret just for added security
 const cryptr = new Cryptr("yHfofXMDFWNaX4sXEe4P3RdYti4jaeLt");
@@ -209,8 +210,9 @@ function secondsToTime(secs) {
     return Math.floor(secs / (60 * 60));
 }
 
-async function startMCAccount() {
+async function startMCAccount(isHeadless) {
     return new Promise(async (resolve, reject) => {
+        const out = createOutput(isHeadless)
         try {
             let config = {
                 method: 'get',
@@ -218,11 +220,18 @@ async function startMCAccount() {
             };
             try {
                 const response = await sendToServer(config, true);
+                if (isHeadless) {
+                    out.data({
+                        ...response
+                    })
+                }
                 resolve({data: response});
             } catch (e) {
+                console.log(e)
                 reject(e);
             }
         } catch (e) {
+            console.log(e)
             reject(e)
         }
     })
@@ -271,31 +280,52 @@ async function refreshToken(refresh_token) {
     });
 }
 
-async function performMCLoginFlow(loginCode) {
-    let spinner = ora(`Waiting For Login...`)
+async function performMCLoginFlow(loginCode,isHeadless) {
+    let spinner;
+    if (!isHeadless) {
+        spinner = ora(`Waiting For Login...`)
+    }
+    const out = createOutput(isHeadless);
     try {
-            if (!loginCode) {
+        console.log('hello')
+            if (!loginCode && !isHeadless) {
                 const AUTH_DATA = await startMCAccount();
-                console.log(AUTH_DATA);
                 let start = (process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open');
                 exec(start + ' ' + AUTH_DATA.data.url);
                 console.log(`✨  Opening Web Browser to Continue Login. If this does not work open this URL: ${AUTH_DATA.data.url}`)
                 spinner.start();
                 loginCode = AUTH_DATA.data.code;
             }
+            if (!isHeadless) {
+                const sign_in = await waitForComplete(loginCode);
+                spinner.succeed(` Acquired Microsoft Refresh Token`);
+                spinner.start(`Writing To File...`)
+                await writeToAccountsFile(loginCode, {"refresh_token": encrypt(sign_in.token)});
+                spinner.succeed(` Written to File`);
+                spinner.start(`Logging into Minecraft...`)
+                await processRefreshToken(loginCode);
+                spinner.succeed(` Logged Into Minecraft`);
+                spinner.start(`Getting Account Info From Minecraft...`);
+                const account_info = await grabAccountInfo(loginCode);
+                spinner.succeed(`👋 Hello ${account_info.profile.username} Your account has been added!.`);
+                return {message:'Account added',name: account_info.profile.username}
+            }
 
-            const sign_in = await waitForComplete(loginCode);
-            spinner.succeed(` Acquired Microsoft Refresh Token`);
-            spinner.start(`Writing To File...`)
-            await writeToAccountsFile(loginCode, {"refresh_token": encrypt(sign_in.token)});
-            spinner.succeed(` Written to File`);
-            spinner.start(`Logging into Minecraft...`)
-            await processRefreshToken(loginCode);
-            spinner.succeed(` Logged Into Minecraft`);
-            spinner.start(`Getting Account Info From Minecraft...`);
-            const account_info = await grabAccountInfo(loginCode);
-            spinner.succeed(`👋 Hello ${account_info.profile.username} Your account has been added!.`);
-            return {message:'Account added',name: account_info.profile.username}
+            if (loginCode && isHeadless) {
+                console.log('yo')
+                out.event('waiting_for_login')
+                const sign_in = await waitForComplete(loginCode);
+                out.event('writing_to_file');
+                await writeToAccountsFile(loginCode, {"refresh_token": encrypt(sign_in.token)});
+                out.event('logging_into_minecraft');
+                await processRefreshToken(loginCode);
+                out.event('logged_into_minecraft');
+                out.event('getting_account_info');
+                const account_info = await grabAccountInfo(loginCode);
+                out.success({...account_info});
+            }
+
+
 
     } catch (e) {
         console.log(e)

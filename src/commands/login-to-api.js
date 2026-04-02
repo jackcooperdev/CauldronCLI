@@ -11,16 +11,14 @@ module.exports = {
         .option('-n, --headless', 'Skip Interactive Elements')
         .option('-l, --device_code <type>', 'Skip Interactive Elements')
         .action(async (options) => {
-            await performLoginFlow(options.headless,options.device_code);
-            process.exit(0);
+            await performLoginFlow(options.headless, options.device_code);
         }),
 
     logout: new Command('logout')
         .option('-n, --headless', 'Skip Interactive Elements')
         .description('Logout from CauldronAPI')
-        .action(async () => {
-            await logout()
-            process.exit(0)
+        .action(async (options) => {
+            await logout(options.headless)
         }),
 
 };
