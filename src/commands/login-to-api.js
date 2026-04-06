@@ -3,6 +3,8 @@
 const { Command } = require('commander');
 
 const { logout, performLoginFlow } = require('../libs/authentication.js');
+const {createOutput} = require("../utils/output");
+const {startAuthFlow} = require("../libs/authentication");
 
 
 module.exports = {
@@ -19,6 +21,20 @@ module.exports = {
         .description('Logout from CauldronAPI')
         .action(async (options) => {
             await logout(options.headless)
+        }),
+
+
+    need_login: new Command('login_required')
+        .option('-n, --headless', 'Skip Interactive Elements')
+        .description('Logout from CauldronAPI')
+        .action(async (options) => {
+            const out = createOutput(options.headless);
+            let needAuth = await startAuthFlow();
+            if (needAuth.login_needed) {
+                out.success(true);
+            } else {
+                out.success(false);
+            }
         }),
 
 };

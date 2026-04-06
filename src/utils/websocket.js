@@ -14,7 +14,7 @@ const { WebSocketServer } = require('ws');
 const net = require('net');
 
 const port = 8080;
-const tcpPort = 9500;
+const tcpPort = 9501;
 const cliLocation = 'cauldroncli-dev';
 
 const server = new WebSocketServer({ port });
@@ -79,11 +79,11 @@ tcpServer.listen(tcpPort,'127.0.0.1', () => {
     console.log(`TCP server listening on port ${tcpPort}`);
 });
 tcpServer.on("listening", () => {
-    console.log("🔥 LISTENING:", tcpServer.address());
+    console.log("LISTENING:", tcpServer.address());
 });
 
 tcpServer.on("error", (err) => {
-    console.log("❌ TCP SERVER ERROR:", err);
+    console.log("TCP SERVER ERROR:", err);
 });
 
 /**
@@ -135,17 +135,7 @@ server.on('connection', (socket) => {
                 ...actualCommand.params
             ]);
 
-            // FIXED: timeout is now properly defined
-            const timeout = setTimeout(() => {
-                console.warn(`Command "${actualCommand.command}" timed out`);
-                child.kill();
 
-                socket.send(JSON.stringify({
-                    status: 'error',
-                    command: actualCommand.command,
-                    message: 'Command timed out'
-                }));
-            }, 60000);
 
             child.stdout.setEncoding('utf8');
             child.stderr.setEncoding('utf8');
@@ -198,7 +188,7 @@ server.on('connection', (socket) => {
             });
 
             child.on('error', (err) => {
-                clearTimeout(timeout);
+                //clearTimeout(timeout);
 
                 console.error('Failed to start process:', err);
 
@@ -210,7 +200,7 @@ server.on('connection', (socket) => {
             });
 
             child.on('close', (code) => {
-                clearTimeout(timeout);
+                //clearTimeout(timeout);
 
                 console.log(`Command "${actualCommand.command}" exited with ${code}`);
 

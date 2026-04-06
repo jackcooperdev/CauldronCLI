@@ -2,39 +2,60 @@ const {search} = require("@inquirer/prompts");
 const {grabAccessToken} = require("./authentication");
 const {grabServerAddress} = require("../utils/enviromentManager");
 
-async function addMod() {
+async function addMod(loader,version,text,headless) {
     return new Promise(async (resolve, reject) => {
         try {
-            const answer = await search({
-                message: 'Search for a mod on curseforge',
-                source: async (input, { signal }) => {
-                    if (!input || input.length < 3) {
-                        return [];
-                    }
+            if (!text && headless) {
+                reject('query required')
+            } else if (text && headless) {
+                const response = await fetch(
 
-                    const response = await fetch(
-
-                        `${grabServerAddress(true)}modpack/curse-search?query=${encodeURIComponent(input)}&version=1.7.10&loader=forge&size=10`,
-                        {
-                            method: 'GET', // Often good practice to explicitly state the method
-                            signal,
-                            headers: {
-                                'Content-Type': 'application/json', // Common header
-                                'Authorization': `Bearer ${await grabAccessToken()}` // Example: an Authorization header
-                                // Add any other headers you need here
-                            },
+                    `${grabServerAddress(true)}modpack/curse-search?query=${encodeURIComponent(text)}&version=${version}&loader=${loader}&size=10`,
+                    {
+                        method: 'GET', // Often good practice to explicitly state the method
+                        headers: {
+                            'Content-Type': 'application/json', // Common header
+                            'Authorization': `Bearer ${await grabAccessToken()}` // Example: an Authorization header
+                            // Add any other headers you need here
                         },
-                    );
-                    const data = await response.json();
+                    },
+                );
+                const data = await response.json();
+                resolve(data)
+            } else {
+                const answer = await search({
+                    message: 'Search for a mod on curseforge',
+                    source: async (input, { signal }) => {
+                        if (!input || input.length < 3) {
+                            return [];
+                        }
 
-                    return data.map((pkg) => ({
-                        name: pkg.name,
-                        value: pkg.value,
-                        description: pkg.description,
-                    }));
-                },
-            });
-            resolve(answer);
+                        const response = await fetch(
+
+                            `${grabServerAddress(true)}modpack/curse-search?query=${encodeURIComponent(input)}&version=1.7.10&loader=forge&size=10`,
+                            {
+                                method: 'GET', // Often good practice to explicitly state the method
+                                signal,
+                                headers: {
+                                    'Content-Type': 'application/json', // Common header
+                                    'Authorization': `Bearer ${await grabAccessToken()}` // Example: an Authorization header
+                                    // Add any other headers you need here
+                                },
+                            },
+                        );
+                        const data = await response.json();
+
+                        return data.map((pkg) => ({
+                            name: pkg.name,
+                            value: pkg.value,
+                            description: pkg.description,
+                        }));
+                    },
+                });
+                resolve(answer);
+            }
+
+
         } catch (e) {
             reject(e);
         }

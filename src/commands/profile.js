@@ -9,6 +9,7 @@ const {downloadProfiles, getProfiles} = require("../libs/profileManager");
 const {addMod} = require("../libs/modManager");
 const {logout} = require("../libs/authentication");
 const {getAuthedUsers} = require("../libs/minecraft-auth");
+const {createOutput} = require("../utils/output");
 // No need for fs or path modules since we're fetching from a URL
 
 // Define the URL to your version manifest file
@@ -24,14 +25,24 @@ module.exports = {
         .option('-d, --debug', 'output extra debugging information')
         .option('-n, --headless', 'Skip Interactive Elements')
         .action(async (options) => {
+            let headless = options.headless;
+            const out = createOutput(options.headless);
             if (options.debug) {
                 cauldronLogger.level = 4;
             }
             const loaders = await checkManifest("cauldron_supported_loaders.json", `${RESOURCES_PATH}/supported_loaders.json`, "main");
             let loaderAnswer;
             console.log(options)
-            if (options.mc_loader && loaders.includes(options.mc_loader)) {
+            if (options.mc_loader && loaders.includes(options.mc_loader) || headless) {
                 loaderAnswer = options.mc_loader;
+                if (!loaderAnswer) {
+                    if (headless) {
+                        out.error('Loader Required')
+                    } else {
+                        console.log('You need to provide a loader');
+                    }
+                    return;
+                }
             } else {
                 loaders.push("Exit");
                 loaderAnswer = await select({
@@ -61,8 +72,16 @@ module.exports = {
                     cauldronLogger.debug(`Loaded ${versionsData.length} versions from manifest.`);
                 }
                 let answer;
-                if (options.version) {
-                    answer = options.version
+                if (options.version || headless) {
+                    answer = options.version;
+                    if (!answer) {
+                        if (headless) {
+                            out.error('Version Required')
+                        } else {
+                            console.log('You need to provide a version');
+                        }
+                        return;
+                    }
                 } else {
                     answer = await search({
                         message: 'Search for a version ID:',
@@ -101,8 +120,16 @@ module.exports = {
                 // If Here Version / Loader is valid
                 let getName;
 
-                if (options.name) {
+                if (options.name || headless) {
                     getName = options.name
+                    if (!getName) {
+                        if (headless) {
+                            out.error('Name Required')
+                        } else {
+                            console.log('You need to provide a name');
+                        }
+                        return;
+                    }
                 } else {
                     getName = await input({message: "Enter Name of Profile:"});
                 }
@@ -147,6 +174,9 @@ module.exports = {
                 const result = await sendToServer(sendData, true);
                 let packID = result.profile._id;
                 cauldronLogger.info("Pack Created!")
+                if (headless) {
+                    out.success({id:packID})
+                }
                 await downloadProfiles();
                 if (options.boot) {
                     // Boot Profile TODO (requires split launch to lib)
@@ -169,6 +199,8 @@ module.exports = {
         .option('-n, --headless', 'Skip Interactive Elements')
         .option('-d, --debug', 'output extra debugging information')
         .action(async (options) => {
+            let headless = options.headless;
+            const out = createOutput(headless);
             await downloadProfiles();
             let profiles = await getProfiles();
             let profileOptions = [];
@@ -189,9 +221,18 @@ module.exports = {
                     choices: profileOptions
                 });
             } else {
+                if (!options.profile) {
+                    if (headless) {
+                        out.error('Profile Required')
+                    } else {
+                        console.log('You need to provide a profile');
+                    }
+                    return;
+                }
                 for (let idx in profiles) {
                     if (profiles[idx]._id === options.profile) {
                         answer = profiles[idx]
+
                     }
                 }
             }
@@ -213,15 +254,25 @@ module.exports = {
                     }
                 }
             } else {
+                if (!options.mods) {
+                    if (headless) {
+                        out.error('Mods Required')
+                    } else {
+                        console.log('You need to provide a mod list');
+                    }
+                    return;
+                }
                 mods = []
-                let modList = options.mods.split(" ")
+                let modList = options.mods.split(",")
                 for (let idx in modList) {
                     let sendData = {
                         method: 'get',
-                        url: `modpack/curse-lookup?knownSlug=${modList[idx]}&version=${answer.options.version}`,
+                        url: `modpack/curse-lookup?knownSlug=${modList[idx].toLowerCase()}&version=${answer.options.version}`,
                     }
 
                     const result = await sendToServer(sendData, true);
+                    console.log(answer.options.version);
+                    console.log(modList[idx]);
                     if (result.isCompatible || result.includes("modrinth")) {
                         let nm = {
                             slug: modList[idx],
@@ -249,6 +300,33 @@ module.exports = {
             cauldronLogger.info('Pack Updated Successfully')
             process.exit(0)
 
+
+        }),
+
+    search_mods: new Command('search')
+        .description("Add Mods To Profile")
+        .requiredOption('-q, --query <query>', 'Search Query')
+        .requiredOption('-l, --loader <loader>', 'Loader')
+        .requiredOption('-v, --version <version>', 'Version')
+        .option('-n, --headless', 'Skip Interactive Elements')
+        .option('-d, --debug', 'output extra debugging information')
+        .action(async (options) => {
+            let headless = options.headless;
+            if (headless) {
+                const out = createOutput(headless);
+                try {
+                    if (options.query.length >= 3) {
+                        let queryResponse = await addMod(options.loader,options.version,options.query,headless);
+                        out.data(queryResponse)
+                    } else {
+                        out.data([])
+                    }
+
+                } catch (e) {
+                    console.error(e);
+                    out.error(e);
+                }
+            }
 
         }),
 
@@ -305,10 +383,14 @@ module.exports = {
         .option('-n, --headless', 'Skip Interactive Elements')
         .option('-d, --debug', 'output extra debugging information')
         .description('List Minecraft Profiles')
-        .action(async () => {
+        .action(async (options) => {
+            const out = createOutput(options.headless);
             await downloadProfiles();
             let profiles = await getProfiles();
-            console.log(profiles);
-            process.exit(0)
+            if (options.headless) {
+                out.data(profiles)
+            } else {
+                console.log(profiles);
+            }
         }),
 };

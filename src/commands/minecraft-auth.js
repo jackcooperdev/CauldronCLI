@@ -13,6 +13,7 @@ const {
 } = require('../libs/minecraft-auth.js');
 
 const { select } = require('@inquirer/prompts');
+const {createOutput} = require("../utils/output");
 
 module.exports = {
     add_account: new Command('add')
@@ -64,9 +65,14 @@ module.exports = {
         .option('-n, --headless', 'Skip Interactive Elements')
         .option('-d, --debug', 'output extra debugging information')
         .description('List Minecraft Accounts')
-        .action(async () => {
+        .action(async (options) => {
+            const out = createOutput(options.headless);
             const users = await getAuthedUsers();
-            console.log(users);
+            if (options.headless) {
+                out.success(users);
+            } else {
+                console.log(users);
+            }
             process.exit(0)
         }),
 
