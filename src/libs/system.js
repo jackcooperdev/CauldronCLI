@@ -49,6 +49,7 @@ async function downloadPackWizInBackground() {
     if (CURRENT_OPERATING_SYSTEM === 'osx') {
         nameInResources = 'mac';
     }
+    console.log(getResourcePath())
 
     let downloadQueue = [
         {

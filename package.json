@@ -23,9 +23,9 @@
   "description": "",
   "dependencies": {
     "@inquirer/prompts": "^7.4.1",
-    "@jackcooperdev/cauldronauthentication": "^1.3.4",
-    "@jackcooperdev/cauldronengine": "^0.6.5",
-    "@jackcooperdev/packwiz_js": "^1.0.8",
+    "@jackcooperdev/cauldronauthentication": "file:../CauldronAuthentication",
+    "@jackcooperdev/cauldronengine": "file:../CauldronEngine",
+    "@jackcooperdev/packwiz_js": "file:../packwiz_js",
     "commander": "^13.1.0",
     "cryptr": "^6.3.0",
     "encoding": "^0.1.13",
