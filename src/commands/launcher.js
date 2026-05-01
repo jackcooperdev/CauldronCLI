@@ -191,7 +191,7 @@ module.exports = {
                     if (!options.dry && !options.headless) {
                         await startMCListening();
                     }
-                    process.exit(0)
+                    //process.exit(0)
                 } else {
                     cauldronLogger.debug('I seem to be stuck')
                 }

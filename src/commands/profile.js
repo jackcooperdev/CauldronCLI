@@ -305,7 +305,7 @@ module.exports = {
 
     search_mods: new Command('search')
         .description("Add Mods To Profile")
-        .requiredOption('-q, --query <query>', 'Search Query')
+        .requiredOption('-q, --query <query...>', 'Search Query')
         .requiredOption('-l, --loader <loader>', 'Loader')
         .requiredOption('-v, --version <version>', 'Version')
         .option('-n, --headless', 'Skip Interactive Elements')
@@ -315,6 +315,8 @@ module.exports = {
             if (headless) {
                 const out = createOutput(headless);
                 try {
+                    options.query = options.query.join(" ");
+                    console.log(options.query)
                     if (options.query.length >= 3) {
                         let queryResponse = await addMod(options.loader,options.version,options.query,headless);
                         out.data(queryResponse)
