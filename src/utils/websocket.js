@@ -133,7 +133,7 @@ server.on('connection', (socket) => {
             const child = spawn(cliLocation, [
                 actualCommand.command,
                 ...actualCommand.params
-            ]);
+            ],{shell:true});
 
 
 

@@ -74,7 +74,7 @@ module.exports = {
                 if (!options.dry && !options.headless) {
                     await startMCListening();
                 }
-                process.exit(0)
+                //process.exit(0)
             } catch (error) {
                 cauldronLogger.error(error);
                 process.exit(1);
