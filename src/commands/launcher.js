@@ -11,6 +11,7 @@ const { getEnginePath } = require("../utils/enviromentManager.js");
 const fs = require("fs");
 const { createModpack } = require("../utils/modpack.js");
 const { select } = require('@inquirer/prompts');
+const {createOutput} = require("../utils/output");
 
 module.exports = {
     quick_launch: new Command('quick-launch')
@@ -24,7 +25,8 @@ module.exports = {
         .option('-n, --headless', 'Skip Interactive Elements')
         .action(async (options) => {
             try {
-                console.log(options)
+                let headless = options.headless;
+                const out = createOutput(headless);
                 if (options.debug) {
                     cauldronLogger.level = 4;
                 }
@@ -34,7 +36,11 @@ module.exports = {
                     if (currentAccounts.length !== 0) {
                         mc_account = currentAccounts[0];
                     } else {
-                        cauldronLogger.error('No Accounts Logged In! Run cauldroncli add')
+                        if (!headless) {
+                            cauldronLogger.error('No Accounts Logged In! Run cauldroncli add')
+                        } else {
+                            out.error('no_accounts')
+                        }
                         process.exit(1);
                     }
                 } else {
@@ -65,10 +71,10 @@ module.exports = {
 
                 const startLaunch = await launchMinecraft(`quick-${options.mc_loader}-${options.mc_version}`, mc_account.value, profileInfo, options.dry);
                 cauldronLogger.info(`Started Session: ${startLaunch}`)
-                if (!options.dry) {
+                if (!options.dry && !options.headless) {
                     await startMCListening();
                 }
-                process.exit(0)
+                //process.exit(0)
             } catch (error) {
                 cauldronLogger.error(error);
                 process.exit(1);
@@ -85,6 +91,8 @@ module.exports = {
         .option('-n, --headless', 'Skip Interactive Elements')
         .action(async (options) => {
             try {
+                let headless = options.headless;
+                const out = createOutput(headless);
                 if (options.debug) {
                     cauldronLogger.level = 4;
                 }
@@ -95,8 +103,11 @@ module.exports = {
                     if (currentAccounts.length !== 0) {
                         mc_account = currentAccounts[0];
                     } else {
-                        cauldronLogger.error('No Accounts Logged In! Run cauldroncli add')
-                        process.exit(1);
+                        if (!headless) {
+                            cauldronLogger.error('No Accounts Logged In! Run cauldroncli add')
+                        } else {
+                            out.error('no_accounts')
+                        }
                     }
                 } else {
                     const currentAccounts = await getAuthedUsers();
@@ -106,8 +117,11 @@ module.exports = {
                         }
                     }
                     if (!mc_account) {
-                        cauldronLogger.error('No Accounts Logged In! Run cauldroncli add')
-                        process.exit(1);
+                        if (!headless) {
+                            cauldronLogger.error('No Accounts Logged In! Run cauldroncli add')
+                        } else {
+                            out.error('no_accounts')
+                        }
                     }
                 }
                 cauldronLogger.debug(`Selected Account: ${mc_account.name}`);
@@ -174,7 +188,7 @@ module.exports = {
                     }
                     const startLaunch = await launchMinecraft(`${profileInfo._id}`, mc_account.value, profileInfo, options.dry);
                     cauldronLogger.info(`Started Session: ${startLaunch}`)
-                    if (!options.dry) {
+                    if (!options.dry && !options.headless) {
                         await startMCListening();
                     }
                     process.exit(0)

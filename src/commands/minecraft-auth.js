@@ -13,6 +13,7 @@ const {
 } = require('../libs/minecraft-auth.js');
 
 const { select } = require('@inquirer/prompts');
+const {createOutput} = require("../utils/output");
 
 module.exports = {
     add_account: new Command('add')
@@ -23,18 +24,12 @@ module.exports = {
         .action(async (options) => {
 
             if (!options.headless) {
-                console.log('perform generic')
                 await performMCLoginFlow();
-                process.exit(0)
             } else {
                 if (!options.device_code) {
-                    let loginCode = await startMCAccount();
-                    console.log(loginCode.data);
-                    process.exit(0);
+                    await startMCAccount(options.headless);
                 } else {
-                    let response_message = await performMCLoginFlow(options.device_code);
-                    console.log(response_message);
-                    process.exit(0)
+                    await performMCLoginFlow(options.device_code,options.headless);
                 }
             }
 
@@ -70,9 +65,14 @@ module.exports = {
         .option('-n, --headless', 'Skip Interactive Elements')
         .option('-d, --debug', 'output extra debugging information')
         .description('List Minecraft Accounts')
-        .action(async () => {
+        .action(async (options) => {
+            const out = createOutput(options.headless);
             const users = await getAuthedUsers();
-            console.log(users);
+            if (options.headless) {
+                out.success(users);
+            } else {
+                console.log(users);
+            }
             process.exit(0)
         }),
 

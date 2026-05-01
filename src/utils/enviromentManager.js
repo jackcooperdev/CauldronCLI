@@ -50,6 +50,7 @@ if (!fs.existsSync(path.join(os.homedir(), 'cauldroncli_admin.json'))) {
     LOCAL_PROTOCOL = admin_file.LOCAL_PROTOCOL;
     FORCE_MODE = admin_file.FORCE_MODE;
     CAULDRON_PATH = admin_file.CAULDRON_PATH;
+    RESOURCE_SERVER = admin_file.RESOURCE_SERVER;
     process.env.CAULDRON_PATH = admin_file.CAULDRON_PATH;
     AUTH_SERVER = admin_file.AUTH_SERVER;
     process.env.RESOURCE_SERVER = admin_file.RESOURCE_SERVER;

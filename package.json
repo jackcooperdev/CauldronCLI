@@ -42,7 +42,6 @@
       "node24-win-x64"
     ],
     "outputPath": "dist",
-
     "scripts": [
       "node_modules/@jackcooperdev/packwiz_js/**/*.js",
       "node_modules/esbuild/**/*.js"

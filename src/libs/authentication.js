@@ -11,6 +11,7 @@ const ora = require("ora-classic");
 const { initializeCauldron } = require("./system.js");
 const { cauldronLogger } = require('@jackcooperdev/cauldronengine/logger');
 const {grabAuthServer} = require("../utils/enviromentManager");
+const {createOutput} = require("../utils/output");
 
 const keytarAccount = os.userInfo().username;
 
@@ -106,8 +107,15 @@ async function performLoginFlow(isHeadLess,loginCode) {
     return new Promise(async (resolve, reject) => {
         try {
             const AUTH_DATA = await startAuthFlow();
-            console.log(AUTH_DATA);
+            const out = createOutput(isHeadLess);
             if (AUTH_DATA.login_needed) {
+                if (isHeadLess && !loginCode) {
+                    out.data({
+                        login_needed: true,
+                        ...AUTH_DATA.data
+                    });
+                    resolve(true);
+                }
                 if (!isHeadLess || isHeadLess && loginCode) {
                     if (!isHeadLess) {
                         let start = (process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open');
@@ -116,12 +124,24 @@ async function performLoginFlow(isHeadLess,loginCode) {
                         console.log(`Opening Web Browser to Continue Login. If this does not work open this URL: ${AUTH_DATA.data.verification_uri_complete}`)
                         loginCode = AUTH_DATA.data.device_code
                     }
-                    const spinner = ora(`Waiting For Login...`).start();
+                    let spinner;
+
+                    if (isHeadLess) {
+                        out.event("waiting_for_login")
+                    } else {
+                        spinner = ora(`Waiting For Login...`).start();
+                    }
+
                     await waitForComplete(loginCode);
-                    spinner.succeed(" Done!")
+
+                    if (isHeadLess) {
+                        out.success();
+                    } else {
+                        spinner.succeed(" Done!")
+                    }
                     resolve(true)
                 } else {
-                    resolve(AUTH_DATA.data)
+                    resolve(JSON.stringify(AUTH_DATA.data))
                 }
             }
             if (!isHeadLess) {
@@ -218,18 +238,20 @@ async function refresh() {
 
 }
 
-function logout() {
+function logout(isHeadless) {
     return new Promise(async (resolve) => {
+        const out = createOutput(isHeadless);
         if ((await keytar.getPassword('cauldroncli', keytarAccount)) != null) {
-            // noinspection ES6MissingAwait
             await keytar.deletePassword('cauldroncli', keytarAccount);
-            // noinspection ES6MissingAwait
             await keytar.deletePassword('cauldronapi', keytarAccount);
-            console.log(`👋 Logged Out`)
-            resolve(true);
+
+            if (isHeadless) {
+                out.success({ message: 'logged_out' });
+            } else {
+                console.log(`👋 Logged Out`);
+            }
         } else {
-            console.log('⚠️ You Are not Logged In')
-            resolve(false);
+            out.error('not_logged_in');
         }
     });
 
