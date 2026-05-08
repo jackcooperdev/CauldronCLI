@@ -125,7 +125,7 @@ async function launchMinecraft(sessionID, mcAccountID, profileInfo, installOnly)
                 cauldronLogger.debug('Install Only Skipped')
                 resolve('restored-from-offline')
             } else {
-                const launchMinecraftSession = await launchGame(profileInfo.options.version, installOnly, profileInfo.options.loader, profileInfo.lVersion, authData, overrides)
+                const launchMinecraftSession = await launchGame(profileInfo.options.version, installOnly, profileInfo.options.loader, profileInfo.options.lVersion, authData, overrides)
                 if (installOnly && !(await isDownloaded(profileInfo.options.version, profileInfo.options.loader))) {
                     let currentOfflineVersions = JSON.parse(fs.readFileSync(path.join(grabPath(), 'offline-versions.json')).toString());
                     currentOfflineVersions['versions'][`${profileInfo.options.version}-${profileInfo.options.loader}`] = {
