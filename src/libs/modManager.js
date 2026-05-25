@@ -1,4 +1,3 @@
-const {search} = require("@inquirer/prompts");
 const {grabAccessToken} = require("./authentication");
 const {grabServerAddress} = require("../utils/enviromentManager");
 
@@ -23,6 +22,7 @@ async function addMod(loader,version,text,headless) {
                 const data = await response.json();
                 resolve(data)
             } else {
+                const {search} = require("@inquirer/prompts");
                 const answer = await search({
                     message: 'Search for a mod on curseforge',
                     source: async (input, { signal }) => {

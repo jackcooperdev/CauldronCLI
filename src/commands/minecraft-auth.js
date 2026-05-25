@@ -12,7 +12,6 @@ const {
     startMCAccount
 } = require('../libs/minecraft-auth.js');
 
-const { select } = require('@inquirer/prompts');
 const {createOutput} = require("../utils/output");
 
 module.exports = {
@@ -42,6 +41,7 @@ module.exports = {
         .description('Remove Minecraft Account')
         .action(async (options) => {
             if (!options.account) {
+                const { select } = require('@inquirer/prompts');
                 const users = await getAuthedUsers();
                 users.push({"name": "Exit", value: false})
                 const answer = await select({

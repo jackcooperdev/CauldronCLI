@@ -1,7 +1,6 @@
 // noinspection JSUnresolvedReference
 
 const {Command} = require('commander');
-const {search, select, input, confirm} = require("@inquirer/prompts");
 const {cauldronLogger} = require("@jackcooperdev/cauldronengine/logger");
 const {checkManifest, whatIsThis} = require("@jackcooperdev/cauldronengine/manifest");
 const {sendToServer} = require("../utils/apiCommunication");
@@ -30,6 +29,7 @@ module.exports = {
             if (options.debug) {
                 cauldronLogger.level = 4;
             }
+            const {search, select, input, confirm} = require("@inquirer/prompts");
             const loaders = await checkManifest("cauldron_supported_loaders.json", `${RESOURCES_PATH}/supported_loaders.json`, "main");
             let loaderAnswer;
             console.log(options)
@@ -200,6 +200,7 @@ module.exports = {
         .option('-d, --debug', 'output extra debugging information')
         .action(async (options) => {
             let headless = options.headless;
+            const {select, confirm} = require("@inquirer/prompts");
             const out = createOutput(headless);
             await downloadProfiles();
             let profiles = await getProfiles();
@@ -338,6 +339,7 @@ module.exports = {
         .option('-p, --profile <type>', 'Profile To Share')
         .option('-n, --headless', 'Skip Interactive Elements')
         .action(async (options) => {
+            const {select} = require("@inquirer/prompts");
             await downloadProfiles();
             let profiles = await getProfiles();
             let profileOptions = [];

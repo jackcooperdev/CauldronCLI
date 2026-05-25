@@ -10,7 +10,6 @@ const path = require("path");
 const { getEnginePath } = require("../utils/enviromentManager.js");
 const fs = require("fs");
 const { createModpack } = require("../utils/modpack.js");
-const { select } = require('@inquirer/prompts');
 const {createOutput} = require("../utils/output");
 
 module.exports = {
@@ -137,6 +136,7 @@ module.exports = {
                 let profileOptions = [];
                 let answer;
                 if (!options.profile) {
+                    const { select } = require('@inquirer/prompts');
                     for (let idx in profiles) {
                         profileOptions.push({"name":`${profiles[idx].profileName} (${profiles[idx].options.version}-${profiles[idx].options.loader})`, "value":profiles[idx]})
                     }

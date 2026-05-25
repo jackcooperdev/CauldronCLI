@@ -4,7 +4,6 @@ const { Command } = require('commander');
 const { resetCauldron, initializeCauldron } = require('../libs/system.js');
 const { performLoginFlow } = require("../libs/authentication.js");
 const { downloadProfiles } = require("../libs/profileManager.js");
-const { confirm } = require('@inquirer/prompts');
 const { performMCLoginFlow } = require("../libs/minecraft-auth.js");
 const {logout, waitForComplete} = require("../libs/authentication");
 const {cauldronLogger} = require("@jackcooperdev/cauldronengine/logger");
