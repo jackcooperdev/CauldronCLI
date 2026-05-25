@@ -1,23 +1,24 @@
-# .github/workflows/build.yml
+# .github/workflows/release.yml
 name: Build Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  release:
+    types: [created]
   workflow_dispatch:
+
 permissions:
   contents: write
+
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-      # ── Checkout ─────────────────────────────────────────────────────────────
+      # ── Checkout ──────────────────────────────────────────────────────────────
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ── Node (for building your project) ─────────────────────────────────────
+      # ── Node.js ───────────────────────────────────────────────────────────────
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -27,66 +28,35 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # ── Build cli.cjs + ws.cjs ────────────────────────────────────────────────
-      - name: Build
-        run: node build.js
+      # ── Bundle with esbuild → dist/cli.cjs ────────────────────────────────────
+      - name: Bundle
+        run: npm run build
 
-      # ── Read version + name from package.json ─────────────────────────────────
-      - name: Get package info
-        id: pkg
-        run: |
-          $json = Get-Content package.json | ConvertFrom-Json
-          echo "VERSION=$($json.version)" >> $env:GITHUB_OUTPUT
-          echo "NAME=$($json.name)" >> $env:GITHUB_OUTPUT
+      # ── Package with pkg → dist/backend-x86_64-pc-windows-msvc.exe ───────────
+      - name: Package executable
+        run: npm run pkg
 
-      # ── Download Node.js binary to bundle ─────────────────────────────────────
-      - name: Download Node.js binary
-        run: |
-          $nodeVersion = "20.19.0"
-          $url = "https://nodejs.org/dist/v$nodeVersion/node-v$nodeVersion-win-x64.zip"
-          Invoke-WebRequest $url -OutFile node.zip
-          Expand-Archive node.zip -DestinationPath node-tmp
-          Copy-Item "node-tmp\node-v$nodeVersion-win-x64\node.exe" "dist\node.exe"
-          Remove-Item node.zip, node-tmp -Recurse -Force
-
-      # ── Download NSSM via Chocolatey (already installed on runner) ────────────
-      - name: Copy NSSM
-        run: Copy-Item "tools\nssm.exe" "dist\nssm.exe"
-
-      # ── Bundle everything into a zip ──────────────────────────────────────────
-      - name: Create release zip
-        run: |
-          $name    = "${{ steps.pkg.outputs.NAME }}"
-          $version = "${{ steps.pkg.outputs.VERSION }}"
-          $zipName = "$name-$version-release.zip"
-
-          # dist\ now contains: cli.cjs, ws.cjs, node.exe, nssm.exe
-          Compress-Archive -Path "dist\*" -DestinationPath $zipName
-          echo "ZIP_NAME=$zipName" >> $env:GITHUB_OUTPUT
-        id: zip
-
-      # ── Generate SHA256 checksum ──────────────────────────────────────────────
+      # ── SHA256 checksum ───────────────────────────────────────────────────────
       - name: Generate checksum
         run: |
-          $zipName = "${{ steps.zip.outputs.ZIP_NAME }}"
-          $hash = (Get-FileHash $zipName -Algorithm SHA256).Hash
-          Set-Content "$zipName.sha256" $hash
+          $hash = (Get-FileHash "dist\backend-x86_64-pc-windows-msvc.exe" -Algorithm SHA256).Hash
+          Set-Content "dist\backend-x86_64-pc-windows-msvc.exe.sha256" $hash
           Write-Host "SHA256: $hash"
 
-      # ── Upload as artifact (for non-tag runs / testing) ───────────────────────
-      - name: Upload artifacts
+      # ── Upload artifact (available on every run, useful for workflow_dispatch) ─
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.pkg.outputs.NAME }}-${{ steps.pkg.outputs.VERSION }}-release
+          name: backend-x86_64-pc-windows-msvc
           path: |
-            ${{ steps.zip.outputs.ZIP_NAME }}
-            ${{ steps.zip.outputs.ZIP_NAME }}.sha256
+            dist/backend-x86_64-pc-windows-msvc.exe
+            dist/backend-x86_64-pc-windows-msvc.exe.sha256
 
-      # ── Attach to GitHub Release on tag push ──────────────────────────────────
+      # ── Attach binary to the GitHub Release ───────────────────────────────────
       - name: Upload to GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
+        if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ${{ steps.zip.outputs.ZIP_NAME }}
-            ${{ steps.zip.outputs.ZIP_NAME }}.sha256
+            dist/backend-x86_64-pc-windows-msvc.exe
+            dist/backend-x86_64-pc-windows-msvc.exe.sha256

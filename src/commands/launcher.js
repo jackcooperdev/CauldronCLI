@@ -1,7 +1,7 @@
 // noinspection JSUnresolvedReference
 const { Command } = require('commander');
 
-const { cauldronLogger, startMCListening } = require('@jackcooperdev/cauldronengine/logger');
+const { cauldronLogger, startMCListening} = require('@jackcooperdev/cauldronengine/logger');
 
 const { getAuthedUsers, refreshAccounts } = require("../libs/minecraft-auth.js");
 const { launchMinecraft } = require("../libs/launcher.js");
@@ -71,9 +71,12 @@ module.exports = {
 
                 const startLaunch = await launchMinecraft(`quick-${options.mc_loader}-${options.mc_version}`, mc_account.value, profileInfo, options.dry);
                 cauldronLogger.info(`Started Session: ${startLaunch}`)
+                process.stdin.unref();
                 if (!options.dry && !options.headless) {
                     await startMCListening();
                 }
+
+
                 //process.exit(0)
             } catch (error) {
                 cauldronLogger.error(error);
@@ -82,7 +85,7 @@ module.exports = {
 
 
         }),
-    launch: new Command('launch')
+    launch: new Command('launch-depreacted')
         .description('Launch a Minecraft Profile')
         .option('-p, --profile <type>', 'Profile ID', undefined)
         .option('-m, --account <type>', 'Minecraft Account Identifier')
@@ -188,6 +191,7 @@ module.exports = {
                     }
                     const startLaunch = await launchMinecraft(`${profileInfo._id}`, mc_account.value, profileInfo, options.dry);
                     cauldronLogger.info(`Started Session: ${startLaunch}`)
+                    //process.stdin.unref();
                     if (!options.dry && !options.headless) {
                         await startMCListening();
                     }
