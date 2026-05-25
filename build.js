@@ -21,7 +21,7 @@ async function build() {
         platform: 'node',
         format: 'cjs',
         outfile: outfile,
-        external: ['node:*','esbuild'],
+        external: ['node:*','esbuild','@aws-sdk/client-s3'],
         minify: false,
         sourcemap: true,
         target: ['node20'],
@@ -33,13 +33,7 @@ async function build() {
         console.error(err);
         process.exit(1);
     });
-
-    await esbuild.build({
-        entryPoints: ["src/ws-entry.js"],
-        bundle: true,
-        platform: "node",
-        outfile: "dist/ws.cjs",
-    });
+    
 
 }
 
