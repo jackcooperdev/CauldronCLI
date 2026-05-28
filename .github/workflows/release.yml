@@ -39,18 +39,18 @@ jobs:
       # ── SHA256 checksum ───────────────────────────────────────────────────────
       - name: Generate checksum
         run: |
-          $hash = (Get-FileHash "dist\backend-x86_64-pc-windows-msvc.exe" -Algorithm SHA256).Hash
-          Set-Content "dist\backend-x86_64-pc-windows-msvc.exe.sha256" $hash
+          $hash = (Get-FileHash "dist\cauldroncli-x86_64-pc-windows-msvc.exe" -Algorithm SHA256).Hash
+          Set-Content "dist\cauldroncli-x86_64-pc-windows-msvc.exe.sha256" $hash
           Write-Host "SHA256: $hash"
 
       # ── Upload artifact (available on every run, useful for workflow_dispatch) ─
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: backend-x86_64-pc-windows-msvc
+          name: cauldroncli-x86_64-pc-windows-msvc
           path: |
-            dist/backend-x86_64-pc-windows-msvc.exe
-            dist/backend-x86_64-pc-windows-msvc.exe.sha256
+            dist/cauldroncli-x86_64-pc-windows-msvc.exe
+            dist/cauldroncli-x86_64-pc-windows-msvc.exe.sha256
 
       # ── Attach binary to the GitHub Release ───────────────────────────────────
       - name: Upload to GitHub Release
@@ -58,5 +58,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/backend-x86_64-pc-windows-msvc.exe
-            dist/backend-x86_64-pc-windows-msvc.exe.sha256
+            dist/cauldroncli-x86_64-pc-windows-msvc.exe
+            dist/cauldroncli-x86_64-pc-windows-msvc.exe.sha256
