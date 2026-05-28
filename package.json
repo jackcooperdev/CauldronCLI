@@ -1,6 +1,6 @@
 {
   "name": "cauldroncli",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "scripts": {
     "local": "npm i file:../CauldronEngine file:../packwiz_js",
     "build": "node build.js",
