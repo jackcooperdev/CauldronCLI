@@ -1,11 +1,11 @@
 {
   "name": "cauldroncli",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "scripts": {
-    "local": "npm i file:../CauldronAuthentication file:../CauldronEngine file:../packwiz_js",
+    "local": "npm i file:../CauldronEngine file:../packwiz_js",
     "build": "node build.js",
-    "pkg": "pkg dist/cli.cjs --targets node18-win-x64 --output dist/backend-x86_64-pc-windows-msvc",
-    "deploy": "npm remove @jackcooperdev/cauldronauthentication @jackcooperdev/cauldronengine @jackcooperdev/packwiz_js && npm i @jackcooperdev/cauldronauthentication @jackcooperdev/cauldronengine @jackcooperdev/packwiz_js"
+    "pkg": "pkg dist/cli.cjs --config package.json --targets node22-win-x64 --output dist/cauldroncli-x86_64-pc-windows-msvc",
+    "deploy": "npm remove @jackcooperdev/cauldronengine @jackcooperdev/packwiz_js && npm i @jackcooperdev/cauldronengine @jackcooperdev/packwiz_js"
   },
   "type": "commonjs",
   "repository": {
@@ -19,31 +19,22 @@
     "url": "https://github.com/jackcooperdev/CauldronCLI/issues"
   },
   "bin": {
-    "cauldroncli-dev": "./bin/index.js"
+    "cauldroncli": "./bin/index.js"
   },
   "homepage": "https://github.com/jackcooperdev/CauldronCLI#readme",
   "description": "",
   "dependencies": {
-    "@inquirer/prompts": "^8.4.3",
-    "@jackcooperdev/cauldronauthentication": "^1.3.4",
-    "@jackcooperdev/cauldronengine": "^0.6.6",
+    "@jackcooperdev/cauldronengine": "^0.7.0",
     "@jackcooperdev/packwiz_js": "^1.0.8",
-
     "axios": "^1.16.1",
     "commander": "^14.0.3",
-    "cryptr": "^6.4.0",
-    "encoding": "^0.1.13",
-    "jsonwebtoken": "^9.0.3",
     "jwt-decode": "^4.0.0",
-    "node-fetch": "^3.3.2",
     "ora-classic": "^5.4.2",
-    "qs": "^6.15.2",
-    "rimraf": "^6.1.3",
-    "ws": "^8.21.0"
+    "rimraf": "^6.1.3"
   },
   "pkg": {
     "targets": [
-      "node18-win-x64"
+      "node20-win-x64"
     ],
     "outputPath": "dist",
     "scripts": [
@@ -51,13 +42,11 @@
       "node_modules/esbuild/**/*.js"
     ],
     "assets": [
-      "node_modules/@jackcooperdev/cauldronauthentication/mojang.pem",
       "node_modules/@jackcooperdev/packwiz_js/**/*"
     ]
   },
   "devDependencies": {
-    "@types/ws": "~8.18.1",
-    "@yao-pkg/pkg": "^6.19.0",
+    "@yao-pkg/pkg": "^6.20.0",
     "esbuild": "^0.28.0"
   }
 }

@@ -46,12 +46,13 @@ async function createCustomModpack(profileInfo) {
     return new Promise(async (resolve, reject) => {
         try {
             let newPackData = {
-                name: profileInfo._id,
+                name: profileInfo.name,
                 author: profileInfo.owner,
                 ...profileInfo.options,
                 minecraftVersion: profileInfo.options.version,
                 mods: profileInfo.modpackInfo.mods
             }
+            console.log(newPackData);
             await createPack(newPackData, path.join(CAULDRON_PATH, 'modpacks'), grabPackwizLocation());
             resolve(true);
         } catch (e) {

@@ -4,7 +4,7 @@ const {checkJVM} = require('@jackcooperdev/cauldronengine/jvm');
 const {cauldronLogger} = require('@jackcooperdev/cauldronengine/logger');
 const {getPackwizJVM} = require('@jackcooperdev/cauldronengine/manifest');
 const {verifyInstallation} = require('@jackcooperdev/cauldronengine/queue');
-
+const os = require('os');
 const ora = require('ora-classic');
 const {join} = require('node:path'); // Using 'node:path' is fine, but 'path' is also common
 const path = require('path');
@@ -37,31 +37,21 @@ async function downloadJVMInBackground() {
 // Downloads Packwiz
 
 async function downloadPackWizInBackground() {
-    console.log('donwloa')
     let fileName = 'packwiz';
-    let extension = '';
 
     if (CURRENT_OPERATING_SYSTEM === 'windows') {
         fileName += '.exe';
-        extension = '.exe';
     }
-
-    let nameInResources = CURRENT_OPERATING_SYSTEM;
-
-    if (CURRENT_OPERATING_SYSTEM === 'osx') {
-        nameInResources = 'mac';
-    }
-    console.log(getResourcePath())
-    let {artifact,bootstrap} = await findPackwizArtifact()
     let downloadQueue = [
         {
-            origin: artifact,
+            origin: `${process.env.RESOURCE_SERVER}/packwiz/${os.platform()}/${os.arch()}`,
             destination: join(CAULDRON_PATH, 'config', 'packwiz'),
             sha1: 'NONE',
-            fileName: fileName
+            fileName: fileName,
+            forceUnzip:false
         },
         {
-            origin: bootstrap,
+            origin: `${process.env.RESOURCE_SERVER}/packwiz/jar`,
             destination: join(CAULDRON_PATH, 'config', 'packwiz'),
             sha1: 'NONE',
             fileName: 'packwiz-installer-bootstrap.jar'
@@ -109,10 +99,6 @@ async function initializeCauldron() {
                 fs.writeFileSync(path.join(CAULDRON_PATH, "config/libs_installed.json"), "{}");
             }
 
-            // Create folders and files
-            if (!fs.existsSync(path.join(CAULDRON_PATH, 'config/profiles.json'))) {
-                fs.writeFileSync(path.join(CAULDRON_PATH, 'config/profiles.json'), "{}");
-            }
             if (!fs.existsSync(path.join(CAULDRON_PATH, 'config/offline-versions.json'))) {
                 let offlineTemplate = {
                     "versions": {},

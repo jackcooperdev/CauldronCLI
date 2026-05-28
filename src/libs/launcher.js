@@ -10,7 +10,6 @@ const { pathToFileURL } = require('url'); // This is an ESM utility, but the 'ur
 const { grabPath, getOperatingSystem} = require('@jackcooperdev/cauldronengine/compat');
 
 const { getModList } = require('@jackcooperdev/packwiz_js');
-const { grabAccountInfo } = require('./minecraft-auth.js');
 const { launchGame } = require('@jackcooperdev/cauldronengine/launcher');
 const { whatIsThis, checkManifest } = require('@jackcooperdev/cauldronengine/manifest');
 const { cauldronLogger } = require("@jackcooperdev/cauldronengine/logger");
@@ -40,13 +39,11 @@ async function isDownloaded(version, loader) {
     })
 }
 
-async function launchMinecraft(sessionID, mcAccountID, profileInfo, installOnly) {
+async function launchMinecraft(sessionID, authData, profileInfo, installOnly) {
     return new Promise(async (resolve, reject) => {
         try {
 
-            let authData;
             if (!installOnly) {
-                authData = await grabAccountInfo(mcAccountID);
                 installOnly = false;
             }
 
@@ -91,7 +88,7 @@ async function launchMinecraft(sessionID, mcAccountID, profileInfo, installOnly)
             // Check For Modpacks
 
             if (profileInfo.isModded) {
-                let modpackPath = path.join(CAULDRON_PATH, 'modpacks', profileInfo._id, 'mods');
+                let modpackPath = path.join(CAULDRON_PATH, 'modpacks', `${sessionID}_pack`, 'mods');
                 console.log(modpackPath);
                 if (fs.existsSync(modpackPath)) {
                     if (fs.existsSync(path.join(CAULDRON_PATH, 'sessions', sessionID, 'mods'))) {
@@ -106,20 +103,19 @@ async function launchMinecraft(sessionID, mcAccountID, profileInfo, installOnly)
                             }
                         }
                         if (!compareArrays(modList, filteredModList)) {
-                            await installMods(profileInfo._id);
+                            await installMods(sessionID);
                         }
                     } else {
-                        await installMods(profileInfo._id);
+                        await installMods(sessionID);
                     }
                 } else {
                     if (fs.existsSync(path.join(modpackPath, '../'))) {
-                        await installMods(profileInfo._id);
+                        await installMods(sessionID);
                     } else {
                         reject('Modpack Declared But not found');
                     }
                 }
             }
-
             let installLock = true
             if (installOnly && !installLock && (await isDownloaded(profileInfo.options.version, profileInfo.options.loader))) {
                 cauldronLogger.debug('Install Only Skipped')
@@ -137,8 +133,6 @@ async function launchMinecraft(sessionID, mcAccountID, profileInfo, installOnly)
                 resolve(launchMinecraftSession);
             }
         } catch (e) {
-            console.log('here')
-            console.log(e)
             reject(e);
         }
     });
@@ -174,13 +168,16 @@ async function installMods(packID) {
         }
 
         const PACKWIZ_INSTALL = path.join(CAULDRON_PATH, 'config','packwiz', 'packwiz-installer-bootstrap.jar');
-        const PACK_PATH_RAW = path.join(CAULDRON_PATH, 'modpacks', packID, 'pack.toml');
+        const PACK_PATH_RAW = path.join(CAULDRON_PATH, 'modpacks', `${packID}_pack`, 'pack.toml');
         const PACK_PATH = pathToFileURL(PACK_PATH_RAW).href ;
         const command = `-jar ${PACKWIZ_INSTALL} ${PACK_PATH}`;
+        console.log(JVM_INSTALL)
+        console.log(command);
         const child = spawn(JVM_INSTALL, command.split(" "), {cwd: path.join(CAULDRON_PATH, 'sessions', packID)});
         child.on('close', (code) => {
             if (code !== 0) {
                 console.error(`child process exited with code ${code}`);
+                process.exit(code);
             } else {
                 resolve(true);
             }
