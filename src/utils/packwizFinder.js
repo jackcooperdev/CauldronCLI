@@ -19,7 +19,6 @@ async function findPackwizArtifact() {
         throw new Error(`Unsupported platform: ${platform}`);
     }
     artifact = `https://nightly.link/packwiz/packwiz/workflows/go/main/${artifactName}.zip`;
-
     const ghHeaders = {
         "Accept": "application/vnd.github+json",
     };

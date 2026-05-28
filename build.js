@@ -21,7 +21,7 @@ async function build() {
         platform: 'node',
         format: 'cjs',
         outfile: outfile,
-        external: ['node:*','esbuild','@aws-sdk/client-s3'],
+        external: ['node:*','esbuild','@aws-sdk/client-s3','@napi-rs/keyring'],
         minify: false,
         sourcemap: true,
         target: ['node20'],
