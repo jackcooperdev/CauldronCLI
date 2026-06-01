@@ -1,6 +1,6 @@
 {
   "name": "cauldroncli",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "scripts": {
     "local": "npm i file:../CauldronEngine file:../packwiz_js",
     "build": "node build.js",
@@ -24,7 +24,7 @@
   "homepage": "https://github.com/jackcooperdev/CauldronCLI#readme",
   "description": "",
   "dependencies": {
-    "@jackcooperdev/cauldronengine": "^0.7.0",
+    "@jackcooperdev/cauldronengine": "^0.7.1",
     "@jackcooperdev/packwiz_js": "^1.0.8",
     "axios": "^1.16.1",
     "commander": "^14.0.3",
