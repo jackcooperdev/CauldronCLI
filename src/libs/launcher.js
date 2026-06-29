@@ -7,7 +7,7 @@ const { spawn } = require('child_process');
 const { pathToFileURL } = require('url'); // This is an ESM utility, but the 'url' module exists in CJS
 
 // Cauldron Imports
-const { grabPath, getOperatingSystem} = require('@jackcooperdev/cauldronengine/compat');
+const { grabPath, getOperatingSystem } = require('@jackcooperdev/cauldronengine/compat');
 
 const { getModList } = require('@jackcooperdev/packwiz_js');
 const { launchGame } = require('@jackcooperdev/cauldronengine/launcher');
@@ -28,7 +28,7 @@ async function isDownloaded(version, loader) {
         }
         let combined = `${version}-${loader}`;
         if (!fs.existsSync(path.join(grabPath(), 'offline-versions.json'))) {
-            fs.writeFileSync(path.join(grabPath(), 'offline-versions.json'),JSON.stringify({versions:{}}));
+            fs.writeFileSync(path.join(grabPath(), 'offline-versions.json'), JSON.stringify({ versions: {} }));
         }
         let currentOfflineVersions = JSON.parse(fs.readFileSync(path.join(grabPath(), 'offline-versions.json')).toString());
         if (currentOfflineVersions.versions[combined]) {
@@ -52,7 +52,7 @@ async function launchMinecraft(sessionID, authData, profileInfo, installOnly) {
             if (!fs.existsSync(path.join(CAULDRON_PATH, 'sessions'))) {
                 fs.mkdirSync(path.join(CAULDRON_PATH, 'sessions'));
             }
-            if (!fs.existsSync(path.join(CAULDRON_PATH, 'sessions',sessionID))) {
+            if (!fs.existsSync(path.join(CAULDRON_PATH, 'sessions', sessionID))) {
                 fs.mkdirSync(path.join(CAULDRON_PATH, 'sessions', sessionID));
             }
 
@@ -77,16 +77,17 @@ async function launchMinecraft(sessionID, authData, profileInfo, installOnly) {
             if (fs.existsSync(path.join(grabPath(), 'custom_args.json'))) {
                 let customArgsFile = JSON.parse(fs.readFileSync(path.join(grabPath(), 'custom_args.json')).toString());
                 if (customArgsFile.jvm) {
-                    overrides['jvm'] = {...overrides['jvm'], ...customArgsFile.jvm};
+                    overrides['jvm'] = { ...overrides['jvm'], ...customArgsFile.jvm };
                 }
                 if (customArgsFile.game) {
-                    overrides['game'] = {...overrides['game'], ...customArgsFile.game};
+                    overrides['game'] = { ...overrides['game'], ...customArgsFile.game };
                 }
             }
 
 
             // Check For Modpacks
-
+            console.log(sessionID)
+            //process.exit(0)
             if (profileInfo.isModded) {
                 let modpackPath = path.join(CAULDRON_PATH, 'modpacks', `${sessionID}_pack`, 'mods');
                 console.log(modpackPath);
@@ -116,6 +117,7 @@ async function launchMinecraft(sessionID, authData, profileInfo, installOnly) {
                     }
                 }
             }
+            //process.exit(0)
             let installLock = true
             if (installOnly && !installLock && (await isDownloaded(profileInfo.options.version, profileInfo.options.loader))) {
                 cauldronLogger.debug('Install Only Skipped')
@@ -162,18 +164,21 @@ function compareArrays(arr1, arr2) {
 
 async function installMods(packID) {
     return new Promise(async (resolve) => {
+        const PACKWIZ_INSTALLER_SRC = path.join(CAULDRON_PATH, 'config', 'packwiz', 'packwiz-installer.jar');
+        const PACKWIZ_INSTALLER_DST = path.join(CAULDRON_PATH, 'sessions', packID, 'packwiz-installer.jar');
+        fs.copyFileSync(PACKWIZ_INSTALLER_SRC, PACKWIZ_INSTALLER_DST);
         let JVM_INSTALL = path.join(CAULDRON_PATH, 'jvm', 'java-runtime-alpha', 'bin', 'java');
         if (getOperatingSystem() === 'osx') {
-            JVM_INSTALL = path.join(CAULDRON_PATH, 'jvm', 'java-runtime-alpha','jre.bundle','Contents','Home','bin','java');
+            JVM_INSTALL = path.join(CAULDRON_PATH, 'jvm', 'java-runtime-alpha', 'jre.bundle', 'Contents', 'Home', 'bin', 'java');
         }
 
-        const PACKWIZ_INSTALL = path.join(CAULDRON_PATH, 'config','packwiz', 'packwiz-installer-bootstrap.jar');
+        const PACKWIZ_INSTALL = path.join(CAULDRON_PATH, 'config', 'packwiz', 'packwiz-installer-bootstrap.jar');
         const PACK_PATH_RAW = path.join(CAULDRON_PATH, 'modpacks', `${packID}_pack`, 'pack.toml');
-        const PACK_PATH = pathToFileURL(PACK_PATH_RAW).href ;
-        const command = `-jar ${PACKWIZ_INSTALL} ${PACK_PATH}`;
+        const PACK_PATH = pathToFileURL(PACK_PATH_RAW).href;
+        const command = `-jar ${PACKWIZ_INSTALL} --bootstrap-no-update ${PACK_PATH}`;
         console.log(JVM_INSTALL)
         console.log(command);
-        const child = spawn(JVM_INSTALL, command.split(" "), {cwd: path.join(CAULDRON_PATH, 'sessions', packID)});
+        const child = spawn(JVM_INSTALL, command.split(" "), { cwd: path.join(CAULDRON_PATH, 'sessions', packID) });
         child.on('close', (code) => {
             if (code !== 0) {
                 console.error(`child process exited with code ${code}`);
@@ -186,4 +191,4 @@ async function installMods(packID) {
 }
 
 
-module.exports = {launchMinecraft};
+module.exports = { launchMinecraft };

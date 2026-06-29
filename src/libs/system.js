@@ -1,17 +1,17 @@
-const {getEnginePath, getResourcePath} = require('../utils/enviromentManager.js');
-const {getOperatingSystem} = require('@jackcooperdev/cauldronengine/compat');
-const {checkJVM} = require('@jackcooperdev/cauldronengine/jvm');
-const {cauldronLogger} = require('@jackcooperdev/cauldronengine/logger');
-const {getPackwizJVM} = require('@jackcooperdev/cauldronengine/manifest');
-const {verifyInstallation} = require('@jackcooperdev/cauldronengine/queue');
+const { getEnginePath, getResourcePath } = require('../utils/enviromentManager.js');
+const { getOperatingSystem } = require('@jackcooperdev/cauldronengine/compat');
+const { checkJVM } = require('@jackcooperdev/cauldronengine/jvm');
+const { cauldronLogger } = require('@jackcooperdev/cauldronengine/logger');
+const { getPackwizJVM } = require('@jackcooperdev/cauldronengine/manifest');
+const { verifyInstallation } = require('@jackcooperdev/cauldronengine/queue');
 const os = require('os');
 const ora = require('ora-classic');
-const {join} = require('node:path'); // Using 'node:path' is fine, but 'path' is also common
+const { join } = require('node:path'); // Using 'node:path' is fine, but 'path' is also common
 const path = require('path');
 const fs = require('fs');
-const {checkInternet} = require("@jackcooperdev/cauldronengine/online");
-const {rimraf} = require('rimraf');
-const {findPackwizArtifact} = require("../utils/packwizFinder");
+const { checkInternet } = require("@jackcooperdev/cauldronengine/online");
+const { rimraf } = require('rimraf');
+const { findPackwizArtifact } = require("../utils/packwizFinder");
 // Set Constants
 
 const CAULDRON_PATH = getEnginePath();
@@ -48,13 +48,19 @@ async function downloadPackWizInBackground() {
             destination: join(CAULDRON_PATH, 'config', 'packwiz'),
             sha1: 'NONE',
             fileName: fileName,
-            forceUnzip:false
+            forceUnzip: false
         },
         {
             origin: `${process.env.RESOURCE_SERVER}/packwiz/jar`,
             destination: join(CAULDRON_PATH, 'config', 'packwiz'),
             sha1: 'NONE',
             fileName: 'packwiz-installer-bootstrap.jar'
+        },
+        {
+            origin: `${process.env.RESOURCE_SERVER}/packwiz/installer`,
+            destination: join(CAULDRON_PATH, 'config', 'packwiz'),
+            sha1: 'NONE',
+            fileName: 'packwiz-installer.jar'
         }
     ];
     const spinner = ora(`Downloading Packwiz...`).start();
@@ -110,6 +116,10 @@ async function initializeCauldron() {
                 fs.mkdirSync(path.join(CAULDRON_PATH, 'modpacks'));
             }
 
+            if (!fs.existsSync(path.join(CAULDRON_PATH, 'modpacks_cache'))) {
+                fs.mkdirSync(path.join(CAULDRON_PATH, 'modpacks_cache'));
+            }
+
             if (!fs.existsSync(path.join(CAULDRON_PATH, 'install'))) {
                 if (await checkInternet()) {
                     await downloadJVMInBackground();
@@ -152,4 +162,4 @@ async function resetCauldron() {
 
 }
 
-module.exports = {initializeCauldron, resetCauldron, checkForInstall};
+module.exports = { initializeCauldron, resetCauldron, checkForInstall };
