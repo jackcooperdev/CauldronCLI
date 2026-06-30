@@ -24,17 +24,17 @@ async function createModpack(profileInfo) {
     })
 }
 
-async function createCurseforgePack(profileInfo) {
+async function createCurseforgePack(url, filename, sha1) {
     return new Promise(async (resolve, reject) => {
         try {
             let queue = [{
-                "origin": profileInfo.modpackInfo.source,
-                "destination": path.join(CAULDRON_PATH, 'bin'),
-                "fileName": `${profileInfo.modpackInfo.source.split("/")[profileInfo.modpackInfo.source.split("/").length - 1]}`,
-                "sha1": "NONE"
+                "origin": url,
+                "destination": path.join(CAULDRON_PATH, 'modpacks_cache'),
+                "fileName": `${filename}.zip`,
+                "sha1": sha1
             }]
             await verifyInstallation(queue, false);
-            await importFromCurseforge(path.join(CAULDRON_PATH, 'bin', `${profileInfo.modpackInfo.source.split("/")[profileInfo.modpackInfo.source.split("/").length - 1]}`), path.join(CAULDRON_PATH, 'modpacks'), grabPackwizLocation(), profileInfo._id);
+            await importFromCurseforge(path.join(CAULDRON_PATH, 'modpacks_cache', `${filename}.zip`), path.join(CAULDRON_PATH, 'modpacks'), grabPackwizLocation(), filename);
             resolve(true);
         } catch (e) {
             reject(e);
@@ -52,7 +52,7 @@ async function createCustomModpack(profileInfo) {
                 minecraftVersion: profileInfo.options.version,
                 mods: profileInfo.modpackInfo.mods
             }
-            console.log(newPackData);
+         
             await createPack(newPackData, path.join(CAULDRON_PATH, 'modpacks'), grabPackwizLocation());
             resolve(true);
         } catch (e) {
@@ -61,18 +61,17 @@ async function createCustomModpack(profileInfo) {
     })
 }
 
-async function createModrinthPack(profileInfo) {
+async function createModrinthPack(url, filename, sha1) {
     return new Promise(async (resolve, reject) => {
         try {
             let queue = [{
-                "origin": profileInfo.modpackInfo.source,
-                "destination": path.join(CAULDRON_PATH, 'bin'),
-                "fileName": `${profileInfo.modpackInfo.source.split("/")[profileInfo.modpackInfo.source.split("/").length - 1]}`,
-                "sha1": "NONE"
+                "origin": url,
+                "destination": path.join(CAULDRON_PATH, 'modpacks_cache'),
+                "fileName": `${filename}.mrpack`,
+                "sha1": sha1
             }]
             await verifyInstallation(queue, false);
-            console.log('creating mr')
-            await importFromModrinth(path.join(CAULDRON_PATH, 'bin', `${profileInfo.modpackInfo.source.split("/")[profileInfo.modpackInfo.source.split("/").length - 1]}`), path.join(CAULDRON_PATH, 'modpacks'), grabPackwizLocation(), profileInfo._id);
+            await importFromModrinth(path.join(CAULDRON_PATH, 'modpacks_cache', `${filename}.mrpack`), path.join(CAULDRON_PATH, 'modpacks'), grabPackwizLocation(), filename);
             resolve(true);
         } catch (e) {
             reject(e);
@@ -80,4 +79,4 @@ async function createModrinthPack(profileInfo) {
     })
 }
 
-module.exports = {createModpack};
+module.exports = { createModpack, createCurseforgePack, createModrinthPack };
