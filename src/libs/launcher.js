@@ -85,15 +85,13 @@ async function launchMinecraft(sessionID, authData, profileInfo, installOnly) {
             }
 
 
-            // Check For Modpacks
-            console.log(sessionID)
+            
             //process.exit(0)
             if (profileInfo.isModded) {
                 let modpackPath = path.join(CAULDRON_PATH, 'modpacks', `${sessionID}_pack`, 'mods');
-                console.log(modpackPath);
+               
                 if (fs.existsSync(modpackPath)) {
                     if (fs.existsSync(path.join(CAULDRON_PATH, 'sessions', sessionID, 'mods'))) {
-
                         let modList = await getModList(path.join(modpackPath, '../'));
                         let unfilteredModList = fs.readdirSync(path.join(CAULDRON_PATH, 'sessions', sessionID, 'mods'));
                         let filteredModList = [];
@@ -104,6 +102,7 @@ async function launchMinecraft(sessionID, authData, profileInfo, installOnly) {
                             }
                         }
                         if (!compareArrays(modList, filteredModList)) {
+                            
                             await installMods(sessionID);
                         }
                     } else {
@@ -117,7 +116,6 @@ async function launchMinecraft(sessionID, authData, profileInfo, installOnly) {
                     }
                 }
             }
-            //process.exit(0)
             let installLock = true
             if (installOnly && !installLock && (await isDownloaded(profileInfo.options.version, profileInfo.options.loader))) {
                 cauldronLogger.debug('Install Only Skipped')
@@ -176,8 +174,7 @@ async function installMods(packID) {
         const PACK_PATH_RAW = path.join(CAULDRON_PATH, 'modpacks', `${packID}_pack`, 'pack.toml');
         const PACK_PATH = pathToFileURL(PACK_PATH_RAW).href;
         const command = `-jar ${PACKWIZ_INSTALL} --bootstrap-no-update ${PACK_PATH}`;
-        console.log(JVM_INSTALL)
-        console.log(command);
+    
         const child = spawn(JVM_INSTALL, command.split(" "), { cwd: path.join(CAULDRON_PATH, 'sessions', packID) });
         child.on('close', (code) => {
             if (code !== 0) {

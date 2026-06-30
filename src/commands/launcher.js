@@ -6,7 +6,7 @@ const { launchMinecraft } = require("../libs/launcher.js");
 const path = require("path");
 const { getEnginePath } = require("../utils/enviromentManager.js");
 const fs = require("fs");
-const { createModpack, createCurseforgePack } = require("../utils/modpack.js");
+const { createModpack, createCurseforgePack, createModrinthPack } = require("../utils/modpack.js");
 const { createOutput } = require("../utils/output");
 const { jwtDecode } = require("jwt-decode");
 const { rimraf } = require("rimraf");
@@ -27,6 +27,7 @@ module.exports = {
         .option('--curseforge_mods <mods>', 'CSV of curseforge slugs')
         .option('--modrinth_mods <mods>', 'CSV of modrinth slugs')
         .option('--curseforge <base64>', 'Base64 String of curseforge modpack (check docs)')
+        .option('--modrinth <base64>', 'Base64 String of modrinth modpack (check docs)')
 
         .action(async (options) => {
             try {
@@ -80,14 +81,14 @@ module.exports = {
 
                 // Create and Install Modpack
 
-                console.log(options)
-                profileInfo['isModded'] = !!(options.curseforge_mods || options.curseforge_mods || options.cache || options.curseforge);
-
+                profileInfo['isModded'] = !!(options.curseforge_mods || options.curseforge_mods || options.cache || options.curseforge || options.modrinth);
+                profileInfo['isUsingPreBuildModpack'] = !!(options.curseforge || options.modrinth);
+    
                 if (profileInfo['isModded']) {
                     profileInfo['useModCache'] = false;
                     if (options.cache) {
                         profileInfo['useModCache'] = true;
-                    } else {
+                    } else if (!profileInfo['isUsingPreBuildModpack']) {
                         if (fs.existsSync(path.join(getEnginePath(), 'modpacks', sessionName + '_pack'))) {
                             await rimraf(path.join(getEnginePath(), 'modpacks', sessionName + '_pack'))
                         }
@@ -102,7 +103,7 @@ module.exports = {
                                 }
                                 newMods.push(obj);
                             }
-                            console.log(profileInfo.options)
+                           
                             let newPackData = {
                                 name: `${sessionName}_pack`,
                                 owner: accountData.pfd[0].name,
@@ -114,20 +115,13 @@ module.exports = {
 
                             }
                             await createModpack(newPackData);
-                            console.log(newPackData);
+                         
                             profileInfo['modpackInfo'] = {
                                 provider: 'custom',
                                 mods: newMods
                             };
                             profileInfo['isModded'] = true
                         }
-
-                        if (options.curseforge) {
-                            let decodedModpack = atob(options.curseforge).split(";");
-                            console.log(decodedModpack)
-                            await createCurseforgePack(decodedModpack[0], `${sessionName}_pack`, decodedModpack[1]);
-                        }
-
                         if (options.modrinth_mods) {
                             let modArray = options.modrinth_mods.split(" ")
                             let newMods = [];
@@ -138,7 +132,7 @@ module.exports = {
                                 }
                                 newMods.push(obj);
                             }
-                            console.log(profileInfo.options)
+                         
                             let newPackData = {
                                 name: `${sessionName}_pack`,
                                 owner: accountData.pfd[0].name,
@@ -150,22 +144,30 @@ module.exports = {
 
                             }
                             await createModpack(newPackData);
-                            console.log(newPackData);
+                           
                             profileInfo['modpackInfo'] = {
                                 provider: 'custom',
                                 mods: newMods
                             };
                             profileInfo['isModded'] = true
                         }
+                    } else if (profileInfo['isUsingPreBuildModpack']) {
+                        if (options.curseforge) {
+                            let decodedModpack = atob(options.curseforge).split(";");
+                          
+                            await createCurseforgePack(decodedModpack[0], `${sessionName}_pack`, decodedModpack[1]);
+                        }
+
+                        if (options.modrinth) {
+                            let decodedModpack = atob(options.modrinth).split(";");
+                            
+                            await createModrinthPack(decodedModpack[0], `${sessionName}_pack`, decodedModpack[1]);
+                        }
                     }
-
-
-
                 }
 
 
-                console.log(profileInfo);
-
+              
                 const startLaunch = await launchMinecraft(sessionName, mc_account, profileInfo, options.dry);
                 cauldronLogger.info(`Started Session: ${startLaunch}`)
                 process.stdin.unref();
