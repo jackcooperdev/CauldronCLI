@@ -11,6 +11,7 @@ const { createOutput } = require("../utils/output");
 const { jwtDecode } = require("jwt-decode");
 const { rimraf } = require("rimraf");
 const { verifyInstallation } = require('@jackcooperdev/cauldronengine/queue');
+const { startServer } = require('@jackcooperdev/cauldronengine/launcher');
 
 module.exports = {
     start: new Command('start')
@@ -83,7 +84,7 @@ module.exports = {
 
                 profileInfo['isModded'] = !!(options.curseforge_mods || options.curseforge_mods || options.cache || options.curseforge || options.modrinth);
                 profileInfo['isUsingPreBuildModpack'] = !!(options.curseforge || options.modrinth);
-    
+
                 if (profileInfo['isModded']) {
                     profileInfo['useModCache'] = false;
                     if (options.cache) {
@@ -103,7 +104,7 @@ module.exports = {
                                 }
                                 newMods.push(obj);
                             }
-                           
+
                             let newPackData = {
                                 name: `${sessionName}_pack`,
                                 owner: accountData.pfd[0].name,
@@ -115,7 +116,7 @@ module.exports = {
 
                             }
                             await createModpack(newPackData);
-                         
+
                             profileInfo['modpackInfo'] = {
                                 provider: 'custom',
                                 mods: newMods
@@ -132,7 +133,7 @@ module.exports = {
                                 }
                                 newMods.push(obj);
                             }
-                         
+
                             let newPackData = {
                                 name: `${sessionName}_pack`,
                                 owner: accountData.pfd[0].name,
@@ -144,7 +145,7 @@ module.exports = {
 
                             }
                             await createModpack(newPackData);
-                           
+
                             profileInfo['modpackInfo'] = {
                                 provider: 'custom',
                                 mods: newMods
@@ -154,20 +155,20 @@ module.exports = {
                     } else if (profileInfo['isUsingPreBuildModpack']) {
                         if (options.curseforge) {
                             let decodedModpack = atob(options.curseforge).split(";");
-                          
+
                             await createCurseforgePack(decodedModpack[0], `${sessionName}_pack`, decodedModpack[1]);
                         }
 
                         if (options.modrinth) {
                             let decodedModpack = atob(options.modrinth).split(";");
-                            
+
                             await createModrinthPack(decodedModpack[0], `${sessionName}_pack`, decodedModpack[1]);
                         }
                     }
                 }
 
 
-              
+
                 const startLaunch = await launchMinecraft(sessionName, mc_account, profileInfo, options.dry);
                 cauldronLogger.info(`Started Session: ${startLaunch}`)
                 process.stdin.unref();
@@ -177,6 +178,33 @@ module.exports = {
 
 
                 //process.exit(0)
+            } catch (error) {
+                cauldronLogger.error(error);
+                process.exit(1);
+            }
+
+
+        }),
+    start_server: new Command('start_server')
+        .description('Launch a Minecraft Instance')
+        .requiredOption('-v, --mc_version <type>', 'Minecraft Version')
+        .option('-l, --mc_loader <type>', 'Minecraft Loader', 'vanilla')
+        .option('-x, --mc_loader_version <type>', 'Minecraft Loader Version', undefined)
+        .option('-n --name <name>', 'Instance Name')
+        .option('-m, --account <token>', 'Minecraft Access Token')
+        .option('-i, --dry', "Install but dont launch", false)
+        .option('-d, --debug', 'output extra debugging information')
+        .option('-g, --headless', 'Skip Interactive Elements')
+        .option('-c --cache', 'Use Cache For Modpack')
+        .option('--curseforge_mods <mods>', 'CSV of curseforge slugs')
+        .option('--modrinth_mods <mods>', 'CSV of modrinth slugs')
+        .option('--curseforge <base64>', 'Base64 String of curseforge modpack (check docs)')
+        .option('--modrinth <base64>', 'Base64 String of modrinth modpack (check docs)')
+
+        .action(async (options) => {
+            try {
+                await startServer('abc123','release','forge')
+                //proces s.exit(0)
             } catch (error) {
                 cauldronLogger.error(error);
                 process.exit(1);
