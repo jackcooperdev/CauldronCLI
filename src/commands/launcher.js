@@ -203,7 +203,7 @@ module.exports = {
 
         .action(async (options) => {
             try {
-                await startServer('abc123','release','forge')
+                await startServer('abc1234','release','forge')
                 //proces s.exit(0)
             } catch (error) {
                 cauldronLogger.error(error);
