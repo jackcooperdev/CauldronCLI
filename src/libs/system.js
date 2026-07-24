@@ -44,20 +44,20 @@ async function downloadPackWizInBackground() {
     }
     let downloadQueue = [
         {
-            origin: `${process.env.RESOURCE_SERVER}/packwiz/${os.platform()}/${os.arch()}`,
+            origin: `${getResourcePath()}/packwiz/${os.platform()}/${os.arch()}`,
             destination: join(CAULDRON_PATH, 'config', 'packwiz'),
             sha1: 'NONE',
             fileName: fileName,
             forceUnzip: false
         },
         {
-            origin: `${process.env.RESOURCE_SERVER}/packwiz/jar`,
+            origin: `${getResourcePath()}/packwiz/jar`,
             destination: join(CAULDRON_PATH, 'config', 'packwiz'),
             sha1: 'NONE',
             fileName: 'packwiz-installer-bootstrap.jar'
         },
         {
-            origin: `${process.env.RESOURCE_SERVER}/packwiz/installer`,
+            origin: `${getResourcePath()}/packwiz/installer`,
             destination: join(CAULDRON_PATH, 'config', 'packwiz'),
             sha1: 'NONE',
             fileName: 'packwiz-installer.jar'
