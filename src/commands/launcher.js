@@ -82,7 +82,7 @@ module.exports = {
 
                 // Create and Install Modpack
 
-                profileInfo['isModded'] = !!(options.curseforge_mods || options.curseforge_mods || options.cache || options.curseforge || options.modrinth);
+                profileInfo['isModded'] = !!(options.curseforge_mods || options.modrinth_mods || options.cache || options.curseforge || options.modrinth);
                 profileInfo['isUsingPreBuildModpack'] = !!(options.curseforge || options.modrinth);
 
                 if (profileInfo['isModded']) {

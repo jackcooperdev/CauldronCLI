@@ -85,8 +85,7 @@ async function launchMinecraft(sessionID, authData, profileInfo, installOnly) {
             }
 
 
-            
-            //process.exit(0)
+        
             if (profileInfo.isModded) {
                 let modpackPath = path.join(CAULDRON_PATH, 'modpacks', `${sessionID}_pack`, 'mods');
                
@@ -173,7 +172,7 @@ async function installMods(packID) {
         const PACKWIZ_INSTALL = path.join(CAULDRON_PATH, 'config', 'packwiz', 'packwiz-installer-bootstrap.jar');
         const PACK_PATH_RAW = path.join(CAULDRON_PATH, 'modpacks', `${packID}_pack`, 'pack.toml');
         const PACK_PATH = pathToFileURL(PACK_PATH_RAW).href;
-        const command = `-jar ${PACKWIZ_INSTALL} --bootstrap-no-update ${PACK_PATH}`;
+        const command = `-jar ${PACKWIZ_INSTALL} --bootstrap-no-update -g ${PACK_PATH}`;
     
         const child = spawn(JVM_INSTALL, command.split(" "), { cwd: path.join(CAULDRON_PATH, 'sessions', packID) });
         child.on('close', (code) => {
