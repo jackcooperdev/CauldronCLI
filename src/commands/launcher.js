@@ -16,19 +16,19 @@ const { startServer } = require('@jackcooperdev/cauldronengine/launcher');
 module.exports = {
     start: new Command('start')
         .description('Launch a Minecraft Instance')
-        .requiredOption('-v, --mc_version <type>', 'Minecraft Version')
+        .option('-v, --mc_version <type>', 'Minecraft Version')
         .option('-l, --mc_loader <type>', 'Minecraft Loader', 'vanilla')
         .option('-x, --mc_loader_version <type>', 'Minecraft Loader Version', undefined)
         .option('-n --name <name>', 'Instance Name')
-        .option('-m, --account <token>', 'Minecraft Access Token')
+        .option('-m, --account <token>', 'Minecraft Access Token' ,'eyJraWQiOiIwNDkxODEiLCJhbGciOiJSUzI1NiJ9.eyJ4dWlkIjoiMjUzNTQ1NDE3NjY2MzQ3NCIsImFnZyI6IkFkdWx0Iiwic3ViIjoiMzQ2NzMzNmQtMGU4OS00M2U5LWEyMzItZjYwZDE4ZjJkYTdjIiwiYXV0aCI6IlhCT1giLCJucyI6ImRlZmF1bHQiLCJyb2xlcyI6W10sImlzcyI6ImF1dGhlbnRpY2F0aW9uIiwiZmxhZ3MiOlsibXVsdGlwbGF5ZXIiXSwicHJvZmlsZXMiOnsibWMiOiI5YzIwMDVkZS04MDkyLTQ5ODctOGFlNy02YzIyNGVkOTE3N2EifSwicG1pZCI6IjYzYmY5NWE5LWJiNDUtNTVkZC1hNWE0LTY1NWE5ZDk5ZDY2OCIsInBsYXRmb3JtIjoiUENfTEFVTkNIRVIiLCJ0aWQiOiJFOTlCMCIsInBmZCI6W3sidHlwZSI6Im1jIiwiaWQiOiI5YzIwMDVkZS04MDkyLTQ5ODctOGFlNy02YzIyNGVkOTE3N2EiLCJuYW1lIjoiZGFya3h3MGxmSTcifV0sInhpZCI6IjI1MzU0NTQxNzY2NjM0NzQiLCJuYmYiOjE3OTA2MjA5MzYsImV4cCI6MTc5MDcwNzMzNiwiaWF0IjoxNzkwNjIwOTM2LCJhaWQiOiIzYmM2OGUwNC1lYTE5LTQxMzUtOGFjYy05YWNiZWFiMGZkMTgifQ.JVzRk3QZTLYag4-0dYy70C3H66rKAXF_yfnwICQVMKpqbBH3A2qw2LoFEvnEW1Y4Q1iwq5fEbAk1bSlN4y0UMB9ML9iGQVUVtSDu1YBEJUsK1f6pxHB6OtwWcoYfNBrVjbtDCl8Q1VOfPWb7yXDIiWvvfUCHSA5RK-q0L1jkU2FXcNhslMw8q2ORyhmb14QUbmWfZiRxIDboloAc4RUsM9eMSUJ28iDauujUz9SyFH1k5V6Bfk7vajGNRT4lBKiI48_jYBUpYdttcpj_JIBUjtY6Q_bQhnMb-PJ5rH49WL784GZCw9-wL10fcsYFNh2yiBJ9L1-W_AoWlhxs3Nkw5g')
         .option('-i, --dry', "Install but dont launch", false)
         .option('-d, --debug', 'output extra debugging information')
         .option('-g, --headless', 'Skip Interactive Elements')
-        .option('-c --cache', 'Use Cache For Modpack')
-        .option('--curseforge_mods <mods>', 'CSV of curseforge slugs')
+        //.option('-c --cache', 'Use Cache For Modpack')
+        /* .option('--curseforge_mods <mods>', 'CSV of curseforge slugs')
         .option('--modrinth_mods <mods>', 'CSV of modrinth slugs')
         .option('--curseforge <base64>', 'Base64 String of curseforge modpack (check docs)')
-        .option('--modrinth <base64>', 'Base64 String of modrinth modpack (check docs)')
+        .option('--modrinth <base64>', 'Base64 String of modrinth modpack (check docs)') */
 
         .action(async (options) => {
             try {
@@ -185,31 +185,5 @@ module.exports = {
 
 
         }),
-    start_server: new Command('start_server')
-        .description('Launch a Minecraft Instance')
-        .requiredOption('-v, --mc_version <type>', 'Minecraft Version')
-        .option('-l, --mc_loader <type>', 'Minecraft Loader', 'vanilla')
-        .option('-x, --mc_loader_version <type>', 'Minecraft Loader Version', undefined)
-        .option('-n --name <name>', 'Instance Name')
-        .option('-m, --account <token>', 'Minecraft Access Token')
-        .option('-i, --dry', "Install but dont launch", false)
-        .option('-d, --debug', 'output extra debugging information')
-        .option('-g, --headless', 'Skip Interactive Elements')
-        .option('-c --cache', 'Use Cache For Modpack')
-        .option('--curseforge_mods <mods>', 'CSV of curseforge slugs')
-        .option('--modrinth_mods <mods>', 'CSV of modrinth slugs')
-        .option('--curseforge <base64>', 'Base64 String of curseforge modpack (check docs)')
-        .option('--modrinth <base64>', 'Base64 String of modrinth modpack (check docs)')
 
-        .action(async (options) => {
-            try {
-                await startServer('abc1234','release','forge')
-                //proces s.exit(0)
-            } catch (error) {
-                cauldronLogger.error(error);
-                process.exit(1);
-            }
-
-
-        }),
 };
