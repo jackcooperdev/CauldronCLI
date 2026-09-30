@@ -32,8 +32,17 @@ jobs:
       - name: Bundle
         run: npm run build
 
-      # ── Package with pkg → dist/backend-x86_64-pc-windows-msvc.exe ───────────
+      - name: Prefetch pkg base binary
+        timeout-minutes: 5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx pkg-fetch --node-range node22 --platform win --arch x64
+
       - name: Package executable
+        timeout-minutes: 10
+        env:
+          PKG_CACHE_PATH: ${{ runner.temp }}\pkg-cache
+          DEBUG_PKG: "1"
         run: npm run pkg
 
       # ── SHA256 checksum ───────────────────────────────────────────────────────

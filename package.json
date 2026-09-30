@@ -42,11 +42,7 @@
     ],
     "outputPath": "dist",
     "scripts": [
-      "node_modules/@jackcooperdev/packwiz_js/**/*.js",
       "node_modules/esbuild/**/*.js"
-    ],
-    "assets": [
-      "node_modules/@jackcooperdev/packwiz_js/**/*"
     ]
   },
   "devDependencies": {
