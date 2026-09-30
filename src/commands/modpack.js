@@ -13,59 +13,48 @@ module.exports = {
         .option('-d, --debug', 'output extra debugging information')
         .option('-g, --headless', 'Skip Interactive Elements')
         .option('--curseforge_mods <mods>', 'CSV of curseforge slugs')
-        .option('--premade <base64>', 'Base64 String of curseforge modpack (check docs)')
         .option('--modrinth_mods <mods>', 'CSV of modrinth slugs')
 
         .action(async (options) => {
             let headless = options.headless;
             const out = createOutput(headless);
-            let { mc_loader, mc_version, name, curseforge_mods, modrinth_mods, premade } = options
+            let { mc_loader, mc_version, name, curseforge_mods, modrinth_mods } = options
             let mods = [];
 
-            console.log(premade)
 
-            if (!premade) {
-                if (curseforge_mods) {
-                    let temp = curseforge_mods.split(",");
-                    for (let mod of temp) {
-                        mods.push({
-                            'slug': mod,
-                            source: 'cf'
-                        })
-                    }
+            if (curseforge_mods) {
+                let temp = curseforge_mods.split(",");
+                for (let mod of temp) {
+                    mods.push({
+                        'slug': mod,
+                        source: 'cf'
+                    })
                 }
-                if (modrinth_mods) {
-                    let temp = modrinth_mods.split(",");
-                    for (let mod of temp) {
-                        mods.push({
-                            'slug': mod,
-                            source: 'mr'
-                        })
-                    }
-                }
-                let packPayload = {
-                    name,
-                    loader: mc_loader,
-                    minecraftVersion: mc_version,
-                    author: 'cmm',
-                    mods: mods
-                }
-                try {
-                    await createModpack('custom', packPayload);
-                    out.success(packPayload)
-                } catch (e) {
-                    out.error(e)
-                }
-            } else {
-                let decodedPack = atob(premade).split(";");
-                let payload = {
-                    url: decodedPack[0],
-                    sha1: decodedPack[1].toLowerCase(),
-                    name
-                }
-                console.log(payload)
-                await createModpack('premade', payload)
             }
+            if (modrinth_mods) {
+                let temp = modrinth_mods.split(",");
+                for (let mod of temp) {
+                    mods.push({
+                        'slug': mod,
+                        source: 'mr'
+                    })
+                }
+            }
+            let packPayload = {
+                name,
+                loader: mc_loader,
+                minecraftVersion: mc_version,
+                author: 'cmm',
+                mods: mods
+            }
+            try {
+                await createModpack('custom', packPayload);
+                await installModpack(packPayload.name)
+                out.success(packPayload)
+            } catch (e) {
+                out.error(e)
+            }
+
 
             process.exit(0);
         }),
@@ -96,8 +85,8 @@ module.exports = {
 
             out.success(packName)
             let end = Date.now()
-            let final = end-start
-            console.log('took '+final+'ms')
+            let final = end - start
+            console.log('took ' + final + 'ms')
 
 
             process.exit(0);
