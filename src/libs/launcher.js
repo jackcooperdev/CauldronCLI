@@ -9,7 +9,7 @@ const { pathToFileURL } = require('url'); // This is an ESM utility, but the 'ur
 // Cauldron Imports
 const { grabPath, getOperatingSystem } = require('@jackcooperdev/cauldronengine/compat');
 
-const { getModList } = require('@jackcooperdev/packwiz_js');
+//const { getModList } = require('@jackcooperdev/packwiz_js');
 const { launchGame } = require('@jackcooperdev/cauldronengine/launcher');
 const { whatIsThis, checkManifest } = require('@jackcooperdev/cauldronengine/manifest');
 const { cauldronLogger } = require("@jackcooperdev/cauldronengine/logger");

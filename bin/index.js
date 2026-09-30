@@ -5,8 +5,9 @@ const program = new Command();
 
 const command2 = require('../src/commands/manage-installation.js');
 const command3 = require('../src/commands/launcher.js');
+const command4 = require('../src/commands/modpack.js');
 const pkg = require('../package.json');
-const {initializeCauldron} = require("../src/libs/system");
+const { initializeCauldron } = require("../src/libs/system");
 
 async function loadCommands() {
     // Add commands from each imported module
@@ -19,6 +20,11 @@ async function loadCommands() {
     for (const commandName in command3) {
         if (command3[commandName] instanceof Command) {
             program.addCommand(command3[commandName]);
+        }
+    }
+    for (const commandName in command4) {
+        if (command4[commandName] instanceof Command) {
+            program.addCommand(command4[commandName]);
         }
     }
 }

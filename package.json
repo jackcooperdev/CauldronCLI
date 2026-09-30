@@ -1,11 +1,11 @@
 {
   "name": "cauldroncli",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "scripts": {
-    "local": "npm i file:../CauldronEngine file:../packwiz_js",
+    "local": "npm i file:../CauldronEngine file:../CauldronModManager",
     "build": "node build.js",
     "pkg": "pkg dist/cli.cjs --config package.json --targets node22-win-x64 --output dist/cauldroncli-x86_64-pc-windows-msvc",
-    "deploy": "npm remove @jackcooperdev/cauldronengine @jackcooperdev/packwiz_js && npm i @jackcooperdev/cauldronengine @jackcooperdev/packwiz_js"
+    "deploy": "npm remove @jackcooperdev/cauldronengine @jackcooperdev/cmm && npm i @jackcooperdev/cauldronengine @jackcooperdev/cmm"
   },
   "type": "commonjs",
   "repository": {
@@ -25,7 +25,7 @@
   "description": "",
   "dependencies": {
     "@jackcooperdev/cauldronengine": "^0.10.5",
-    "@jackcooperdev/packwiz_js": "^1.1.0",
+    "@jackcooperdev/cmm": "^0.1.0",
     "axios": "^1.18.1",
     "commander": "^15.0.0",
     "jwt-decode": "^4.0.0",
