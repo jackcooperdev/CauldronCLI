@@ -24,10 +24,11 @@
   "homepage": "https://github.com/jackcooperdev/CauldronCLI#readme",
   "description": "",
   "dependencies": {
-    "@jackcooperdev/cauldronengine": "^0.10.5",
-    "@jackcooperdev/cmm": "^0.1.0",
+    "@jackcooperdev/cauldronengine": "file:../CauldronEngine",
+    "@jackcooperdev/cmm": "file:../CauldronModManager",
     "axios": "^1.18.1",
     "commander": "^15.0.0",
+    "jsonwebtoken": "^9.0.3",
     "jwt-decode": "^4.0.0",
     "ora-classic": "^5.4.2",
     "rimraf": "^6.1.3"

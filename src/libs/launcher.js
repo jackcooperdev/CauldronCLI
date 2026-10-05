@@ -46,8 +46,7 @@ async function launchMinecraft(sessionID, authData, profileInfo, installOnly) {
             if (!installOnly) {
                 installOnly = false;
             }
-
-            let overrides = profileInfo.overides;
+            let overrides = profileInfo.overrides;
             // Create Session Folder
             if (!fs.existsSync(path.join(CAULDRON_PATH, 'sessions'))) {
                 fs.mkdirSync(path.join(CAULDRON_PATH, 'sessions'));
