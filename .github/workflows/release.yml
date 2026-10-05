@@ -1,9 +1,8 @@
-# .github/workflows/release.yml
 name: Build Release
 
 on:
   release:
-    types: [created]
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -12,60 +11,56 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    timeout-minutes: 25
+    env:
+      EXE: dist/cauldroncli-x86_64-pc-windows-msvc.exe
+      PKG_CACHE_PATH: ${{ github.workspace }}\.pkg-cache
 
     steps:
-      # ── Checkout ──────────────────────────────────────────────────────────────
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # ── Node.js ───────────────────────────────────────────────────────────────
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: "npm"
+          node-version: 22
+          cache: npm
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
+      - run: npm run build
 
-      # ── Bundle with esbuild → dist/cli.cjs ────────────────────────────────────
-      - name: Bundle
-        run: npm run build
+      # Base binary is cached, so the GitHub download only happens on a miss
+      - name: Cache pkg base binaries
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PKG_CACHE_PATH }}
+          key: pkg-cache-${{ runner.os }}-node22-v1
 
-      - name: Prefetch pkg base binary
-        timeout-minutes: 5
+      # A stalled download gets killed after 5 min and retried
+      - name: Package executable
+        uses: nick-fields/retry@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx pkg-fetch --node-range node22 --platform win --arch x64
+        with:
+          timeout_minutes: 3
+          max_attempts: 3
+          retry_wait_seconds: 10
+          shell: pwsh
+          command: npm run pkg
 
-      - name: Package executable
-        timeout-minutes: 10
-        env:
-          PKG_CACHE_PATH: ${{ runner.temp }}\pkg-cache
-          DEBUG_PKG: "1"
-        run: npm run pkg
-
-      # ── SHA256 checksum ───────────────────────────────────────────────────────
-      - name: Generate checksum
+      - name: Checksum
+        shell: pwsh
         run: |
-          $hash = (Get-FileHash "dist\cauldroncli-x86_64-pc-windows-msvc.exe" -Algorithm SHA256).Hash
-          Set-Content "dist\cauldroncli-x86_64-pc-windows-msvc.exe.sha256" $hash
-          Write-Host "SHA256: $hash"
+          $hash = (Get-FileHash $env:EXE -Algorithm SHA256).Hash
+          Set-Content "$env:EXE.sha256" $hash
 
-      # ── Upload artifact (available on every run, useful for workflow_dispatch) ─
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: cauldroncli-x86_64-pc-windows-msvc
           path: |
-            dist/cauldroncli-x86_64-pc-windows-msvc.exe
-            dist/cauldroncli-x86_64-pc-windows-msvc.exe.sha256
+            ${{ env.EXE }}
+            ${{ env.EXE }}.sha256
 
-      # ── Attach binary to the GitHub Release ───────────────────────────────────
-      - name: Upload to GitHub Release
+      - name: Upload to release
         if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            dist/cauldroncli-x86_64-pc-windows-msvc.exe
-            dist/cauldroncli-x86_64-pc-windows-msvc.exe.sha256
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.event.release.tag_name }}" "${{ env.EXE }}" "${{ env.EXE }}.sha256" --clobber
