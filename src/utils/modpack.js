@@ -6,6 +6,8 @@ const { createPack, importFromFolder } = require("@jackcooperdev/cmm/pack");
 //const { createPack, importFromCurseforge, importFromModrinth } = require("@jackcooperdev/packwiz_js");
 const fs = require('fs');
 const { installMods } = require("@jackcooperdev/cmm/bootstrap");
+const { getPackInfo } = require('@jackcooperdev/cmm/pack')
+
 const CAULDRON_PATH = getEnginePath();
 
 
@@ -48,16 +50,18 @@ async function installModpack(packName) {
         if (!fs.existsSync(packPath)) {
             reject(false);
         };
+        
         let destPath = path.join(CAULDRON_PATH,'sessions',packName)
 
         console.log(packPath)
         console.log(destPath)
 
         // await installMods(packPath,destPath)
-        await installMods(packPath,destPath)
+        await installMods(packPath,destPath);
 
-        console.log('starting install')
-        resolve(true)
+        let info = await getPackInfo(packPath)
+
+        resolve(info)
      })
 }
 
