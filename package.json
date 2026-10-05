@@ -1,6 +1,6 @@
 {
   "name": "cauldroncli",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "scripts": {
     "local": "npm i file:../CauldronEngine file:../CauldronModManager",
     "build": "node build.js",
@@ -24,8 +24,8 @@
   "homepage": "https://github.com/jackcooperdev/CauldronCLI#readme",
   "description": "",
   "dependencies": {
-    "@jackcooperdev/cauldronengine": "file:../CauldronEngine",
-    "@jackcooperdev/cmm": "file:../CauldronModManager",
+    "@jackcooperdev/cauldronengine": "^0.11.1",
+    "@jackcooperdev/cmm": "^0.1.2",
     "axios": "^1.18.1",
     "commander": "^15.0.0",
     "jwt-decode": "^4.0.0",

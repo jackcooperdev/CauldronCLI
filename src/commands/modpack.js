@@ -64,7 +64,7 @@ module.exports = {
         .option('-n --name <name>', 'Instance Name')
         .option('-d, --debug', 'output extra debugging information')
         .option('-g, --headless', 'Skip Interactive Elements')
-        .option('--premade <base64>', 'Base64 String of curseforge modpack (check docs)')
+        .requiredOption('--premade <base64>', 'Base64 String of curseforge modpack (check docs)')
 
         .action(async (options) => {
             let start = Date.now();

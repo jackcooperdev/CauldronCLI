@@ -27,6 +27,7 @@ module.exports = {
         .option('-d, --debug', 'output extra debugging information')
         .option('-g, --headless', 'Skip Interactive Elements')
         .option('--curseforge_mods <mods>', 'CSV of curseforge slugs')
+        .option('--modrinth_mods <mods>', 'CSV of modrinth slugs')
         .option('-c --cache', 'Use Cache For Modpack')
         .option('-o --overrides <overrides>', 'Overrides When Launching (CSV) e.g ram=2,ram_low=1')
         /* .option('--curseforge_mods <mods>', 'CSV of curseforge slugs')
@@ -162,8 +163,19 @@ module.exports = {
                     // Cache Look for modpack inside named folder
                     let expDir = path.join(getEnginePath(), 'modpacks', name);
                     if (fs.existsSync(expDir)) {
-                        await installModpack(name);
+                       let info = await installModpack(name);
+                        profileInfo.options.version = info.versions.minecraft;
+                        profileInfo.options.loader = info.versions.loader.type;
+                        profileInfo.options.lVersion = info.versions.loader.version;
                     };
+                };
+
+                if (!profileInfo.options.version) {
+                    cauldronLogger.error("Please Define A version!")
+                    if (headless) {
+                        out.error('please define a version');
+                        process.exit(1)
+                    }
                 }
                 const startLaunch = await launchMinecraft(sessionName, mc_account, profileInfo, options.dry);
                 cauldronLogger.info(`Started Session: ${startLaunch}`)
