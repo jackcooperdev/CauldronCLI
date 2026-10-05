@@ -1,76 +1,15 @@
-const { getEnginePath, getResourcePath } = require('../utils/enviromentManager.js');
+const { getEnginePath } = require('../utils/enviromentManager.js');
 const { getOperatingSystem } = require('@jackcooperdev/cauldronengine/compat');
-const { checkJVM } = require('@jackcooperdev/cauldronengine/jvm');
-const { cauldronLogger } = require('@jackcooperdev/cauldronengine/logger');
-const { getPackwizJVM } = require('@jackcooperdev/cauldronengine/manifest');
-const { verifyInstallation } = require('@jackcooperdev/cauldronengine/queue');
-const os = require('os');
-const ora = require('ora-classic');
-const { join } = require('node:path'); // Using 'node:path' is fine, but 'path' is also common
+
 const path = require('path');
 const fs = require('fs');
-const { checkInternet } = require("@jackcooperdev/cauldronengine/online");
-const { rimraf } = require('rimraf');
-const { findPackwizArtifact } = require("../utils/packwizFinder");
+const { rimraf, rimrafSync } = require('rimraf');
+
 // Set Constants
 
 const CAULDRON_PATH = getEnginePath();
-const CURRENT_OPERATING_SYSTEM = getOperatingSystem();
-
-// downloadJVMInBackground
-// Downloads Correct JVM for Packwiz to Function
-
-async function downloadJVMInBackground() {
-    try {
-        const jManifest = await getPackwizJVM();
-        const spinner = ora(`Downloading JVM: ${jManifest.jvmComp}...`).start();
-        await checkJVM(jManifest.jvmComp, jManifest.jvmMani);
-        spinner.succeed(`Retrieved JVM: ${jManifest.jvmComp}`);
-
-    } catch (e) {
-        cauldronLogger.error(e);
-    }
-}
 
 
-// downloadPackWizInBackground
-// Downloads Packwiz
-
-async function downloadPackWizInBackground() {
-    let fileName = 'packwiz';
-
-    if (CURRENT_OPERATING_SYSTEM === 'windows') {
-        fileName += '.exe';
-    }
-    let downloadQueue = [
-        {
-            origin: `${getResourcePath()}/packwiz/${os.platform()}/${os.arch()}`,
-            destination: join(CAULDRON_PATH, 'config', 'packwiz'),
-            sha1: 'NONE',
-            fileName: fileName,
-            forceUnzip: false
-        },
-        {
-            origin: `${getResourcePath()}/packwiz/jar`,
-            destination: join(CAULDRON_PATH, 'config', 'packwiz'),
-            sha1: 'NONE',
-            fileName: 'packwiz-installer-bootstrap.jar'
-        },
-        {
-            origin: `${getResourcePath()}/packwiz/installer`,
-            destination: join(CAULDRON_PATH, 'config', 'packwiz'),
-            sha1: 'NONE',
-            fileName: 'packwiz-installer.jar'
-        }
-    ];
-    const spinner = ora(`Downloading Packwiz...`).start();
-    await verifyInstallation(downloadQueue);
-    spinner.succeed(`Retrieved Packwiz`);
-    if (CURRENT_OPERATING_SYSTEM === 'linux' || CURRENT_OPERATING_SYSTEM === 'osx') {
-        fs.chmodSync(path.join(CAULDRON_PATH, 'config', 'packwiz', fileName), 0o755);
-    }
-
-}
 
 // initializeCauldron()
 // Creates folder structure and installs vital files
@@ -119,15 +58,10 @@ async function initializeCauldron() {
             if (!fs.existsSync(path.join(CAULDRON_PATH, 'modpacks_cache'))) {
                 fs.mkdirSync(path.join(CAULDRON_PATH, 'modpacks_cache'));
             }
-
-            if (!fs.existsSync(path.join(CAULDRON_PATH, 'install'))) {
-                if (await checkInternet()) {
-                    await downloadJVMInBackground();
-                    await downloadPackWizInBackground();
-                    fs.writeFileSync(path.join(CAULDRON_PATH, 'install'), Date.now().toString());
-                } else {
-                    process.exit(0);
-                }
+            // Purge PWiz From Installation
+            if (fs.existsSync(path.join(CAULDRON_PATH, 'install'))) {
+                rimrafSync(path.join(CAULDRON_PATH,'config','packwiz'))
+                rimrafSync(path.join(CAULDRON_PATH,'install'))
             }
             resolve(true);
 
@@ -136,21 +70,6 @@ async function initializeCauldron() {
             reject(e);
         }
     });
-}
-
-
-async function checkForInstall() {
-    return new Promise(async (resolve, reject) => {
-        try {
-            if (!fs.existsSync(path.join(CAULDRON_PATH, 'install'))) {
-                resolve(false);
-            } else {
-                resolve(true);
-            }
-        } catch (e) {
-            reject(e);
-        }
-    })
 }
 
 async function resetCauldron() {
@@ -162,4 +81,4 @@ async function resetCauldron() {
 
 }
 
-module.exports = { initializeCauldron, resetCauldron, checkForInstall };
+module.exports = { initializeCauldron, resetCauldron };
