@@ -5,3 +5,4 @@ compile/Output/*
 compile/*.exe
 .yalc
 .claude
+bin/*.json
