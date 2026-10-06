@@ -1,6 +1,6 @@
 {
   "name": "cauldroncli",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "scripts": {
     "local": "npm i file:../CauldronEngine file:../CauldronModManager",
     "build": "node build.js",

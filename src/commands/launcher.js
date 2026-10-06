@@ -159,11 +159,11 @@ module.exports = {
                     } catch (e) {
                         out.error(e)
                     }
-                } else if (cache) {
+                } else if (cache || name) {
                     // Cache Look for modpack inside named folder
                     let expDir = path.join(getEnginePath(), 'modpacks', name);
                     if (fs.existsSync(expDir)) {
-                       let info = await installModpack(name);
+                        let info = await installModpack(name);
                         profileInfo.options.version = info.versions.minecraft;
                         profileInfo.options.loader = info.versions.loader.type;
                         profileInfo.options.lVersion = info.versions.loader.version;
@@ -174,9 +174,11 @@ module.exports = {
                     cauldronLogger.error("Please Define A version!")
                     if (headless) {
                         out.error('please define a version');
-                        process.exit(1)
+
                     }
+                    process.exit(1)
                 }
+                console.log(profileInfo);
                 const startLaunch = await launchMinecraft(sessionName, mc_account, profileInfo, options.dry);
                 cauldronLogger.info(`Started Session: ${startLaunch}`)
                 process.stdin.unref();

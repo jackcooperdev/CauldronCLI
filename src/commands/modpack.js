@@ -1,7 +1,8 @@
 const { Command } = require('commander');
 const { createModpack, installModpack } = require('../utils/modpack');
 const { createOutput } = require("../utils/output");
-const path = require('path')
+const path = require('path');
+const { cauldronLogger } = require('@jackcooperdev/cauldronengine/logger');
 module.exports = {
 
     create: new Command('createMPack')
@@ -79,14 +80,26 @@ module.exports = {
                 sha1: decodedPack[1].toLowerCase(),
                 name
             }
-            let packName = await createModpack('premade', payload);
+            try {
+                console.log(payload)
+                let packName = await createModpack('premade', payload);
+                let mid = Date.now() - start
+                console.log('creation took '+ mid+'ms')
 
-            await installModpack(packName.name)
+                await installModpack(packName.name)
 
-            out.success(packName)
-            let end = Date.now()
-            let final = end - start
-            console.log('took ' + final + 'ms')
+                out.success(packName)
+                let end = Date.now()
+                let final = end - start
+                console.log('took ' + final + 'ms')
+
+            } catch (e) {
+                if (headless) {
+                    out.error(e)
+                } else {
+                    cauldronLogger.error(e)
+                }
+            }
 
 
             process.exit(0);
