@@ -163,6 +163,7 @@ module.exports = {
                     // Cache Look for modpack inside named folder
                     let expDir = path.join(getEnginePath(), 'modpacks', name);
                     if (fs.existsSync(expDir)) {
+
                         let info = await installModpack(name);
                         profileInfo.options.version = info.versions.minecraft;
                         profileInfo.options.loader = info.versions.loader.type;
@@ -178,7 +179,7 @@ module.exports = {
                     }
                     process.exit(1)
                 }
-                console.log(profileInfo);
+
                 const startLaunch = await launchMinecraft(sessionName, mc_account, profileInfo, options.dry);
                 cauldronLogger.info(`Started Session: ${startLaunch}`)
                 process.stdin.unref();

@@ -53,9 +53,6 @@ async function installModpack(packName) {
         
         let destPath = path.join(CAULDRON_PATH,'sessions',packName)
 
-        console.log(packPath)
-        console.log(destPath)
-
         // await installMods(packPath,destPath)
         await installMods(packPath,destPath);
 
