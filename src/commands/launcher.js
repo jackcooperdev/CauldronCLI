@@ -183,7 +183,7 @@ module.exports = {
                 const startLaunch = await launchMinecraft(sessionName, mc_account, profileInfo, options.dry);
                 cauldronLogger.info(`Started Session: ${startLaunch}`)
                 process.stdin.unref();
-                if (!options.dry && !options.headless) {
+                if (!options.dry && !options.headless && startLaunch !== 'DETACH') {
                     await startMCListening();
                 }
                 //process.exit(0)

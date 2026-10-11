@@ -24,8 +24,8 @@
   "homepage": "https://github.com/jackcooperdev/CauldronCLI#readme",
   "description": "",
   "dependencies": {
-    "@jackcooperdev/cauldronengine": "^0.11.2",
-    "@jackcooperdev/cmm": "^0.2.0",
+    "@jackcooperdev/cauldronengine": "file:../CauldronEngine",
+    "@jackcooperdev/cmm": "file:../CauldronModManager",
     "axios": "^1.18.1",
     "commander": "^15.0.0",
     "jwt-decode": "^4.0.0",
