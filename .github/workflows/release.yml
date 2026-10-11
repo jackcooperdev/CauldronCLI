@@ -1,66 +1,97 @@
-name: Build Release
+# .github/workflows/release.yml (in the CauldronCLI repo)
+#
+# Builds the CLI with pkg (SEA mode) for each platform and uploads the
+# binaries to the release that triggered the run. Asset names match the
+# Tauri sidecar target triples that the dashboard's fetchBackend.js expects.
+
+name: Build & upload release binaries
 
 on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to (re)build binaries for
+        required: true
 
 permissions:
   contents: write
 
+env:
+  TAG: ${{ github.event.release.tag_name || inputs.tag }}
+
 jobs:
   build:
-    runs-on: windows-latest
-    timeout-minutes: 25
-    env:
-      EXE: dist/cauldroncli-x86_64-pc-windows-msvc.exe
-      PKG_CACHE_PATH: ${{ github.workspace }}\.pkg-cache
+    name: ${{ matrix.triple }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            pkg_target: node22-win-x64
+            triple: x86_64-pc-windows-msvc
+            ext: .exe
+            smoke_test: true
+          - os: ubuntu-22.04
+            pkg_target: node22-linux-x64
+            triple: x86_64-unknown-linux-gnu
+            ext: ''
+            smoke_test: true
+          - os: macos-latest # Apple Silicon runner
+            pkg_target: node22-macos-arm64
+            triple: aarch64-apple-darwin
+            ext: ''
+            smoke_test: true
+          - os: macos-latest # Intel build made on the arm runner; can't be run here
+            pkg_target: node22-macos-x64
+            triple: x86_64-apple-darwin
+            ext: ''
+            smoke_test: false
+
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
-      - run: npm ci
-      - run: npm run build
+      - name: Install dependencies
+        run: npm ci
 
-      # Base binary is cached, so the GitHub download only happens on a miss
-      - name: Cache pkg base binaries
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.PKG_CACHE_PATH }}
-          key: pkg-cache-${{ runner.os }}-node22-v1
+      - name: Bundle with esbuild
+        run: npm run build
 
-      # A stalled download gets killed after 5 min and retried
-      - name: Package executable
-        uses: nick-fields/retry@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          timeout_minutes: 3
-          max_attempts: 3
-          retry_wait_seconds: 10
-          shell: pwsh
-          command: npm run pkg
-
-      - name: Checksum
-        shell: pwsh
+      - name: Package with pkg
         run: |
-          $hash = (Get-FileHash $env:EXE -Algorithm SHA256).Hash
-          Set-Content "$env:EXE.sha256" $hash
+          OUT="dist/cauldroncli-${{ matrix.triple }}${{ matrix.ext }}"
+          npx pkg dist/cli.cjs --config package.json \
+            --targets ${{ matrix.pkg_target }} \
+            --output "$OUT"
+          echo "OUT=$OUT" >> "$GITHUB_ENV"
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: cauldroncli-x86_64-pc-windows-msvc
-          path: |
-            ${{ env.EXE }}
-            ${{ env.EXE }}.sha256
+      # macOS refuses to run unsigned arm64 binaries, and SEA injection
+      # invalidates Node's original signature, so re-sign ad hoc.
+      # Swap "-" for your Developer ID identity if you notarise the dashboard.
+      - name: Ad-hoc sign (macOS)
+        if: runner.os == 'macOS'
+        run: codesign --sign - --force "$OUT"
+
+      - name: Smoke test
+        if: matrix.smoke_test
+        run: |
+          chmod +x "$OUT" || true
+          "./$OUT" --help
 
       - name: Upload to release
-        if: github.event_name == 'release'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ github.event.release.tag_name }}" "${{ env.EXE }}" "${{ env.EXE }}.sha256" --clobber
+        run: gh release upload "$TAG" "$OUT" --clobber

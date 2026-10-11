@@ -1,10 +1,10 @@
 {
   "name": "cauldroncli",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "scripts": {
     "local": "npm i file:../CauldronEngine file:../CauldronModManager",
     "build": "node build.js",
-    "pkg": "pkg dist/cli.cjs --config package.json --targets node22-win-x64 --output dist/cauldroncli-x86_64-pc-windows-msvc",
+    "pkg": "pkg dist/cli.cjs --config package.json",
     "deploy": "npm remove @jackcooperdev/cauldronengine @jackcooperdev/cmm && npm i @jackcooperdev/cauldronengine @jackcooperdev/cmm"
   },
   "type": "commonjs",
@@ -37,8 +37,11 @@
   },
   "pkg": {
     "targets": [
-      "node20-win-x64"
+      "node22-win-x64",
+      "node22-macos-arm64",
+      "node22-linux-x64"
     ],
+    "sea": true,
     "outputPath": "dist",
     "scripts": [
       "node_modules/esbuild/**/*.js"
