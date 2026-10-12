@@ -6,3 +6,4 @@ compile/*.exe
 .yalc
 .claude
 bin/*.json
+.DS_Store
