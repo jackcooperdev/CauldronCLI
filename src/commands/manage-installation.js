@@ -32,7 +32,7 @@ module.exports = {
             console.log('how much dedatted wam do i need for my server?')
             try {
                 //await installGame('1.7.10', { type: 'vanilla' });
-                await startGame('release',{type:'vanilla'},{demo:true});
+                //await startGame('release',{type:'vanilla'},{demo:true});
                 const out = createOutput(headless);
                 out.success({ 'message': 'OK' })
 

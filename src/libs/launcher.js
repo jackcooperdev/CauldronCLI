@@ -7,17 +7,18 @@ const { spawn } = require('child_process');
 const { pathToFileURL } = require('url'); // This is an ESM utility, but the 'url' module exists in CJS
 
 // Cauldron Imports
-const { grabPath, getOperatingSystem } = require('@jackcooperdev/cauldronengine/compat');
+const { grabPath, getOperatingSystem, grabEnginePath } = require('@jackcooperdev/cauldronengine/compat');
 
 //const { getModList } = require('@jackcooperdev/packwiz_js');
 const { launchGame } = require('@jackcooperdev/cauldronengine/launcher');
 const { whatIsThis, checkManifest } = require('@jackcooperdev/cauldronengine/manifest');
 const { cauldronLogger } = require("@jackcooperdev/cauldronengine/logger");
+const { startGame } = require('@jackcooperdev/cauldronengine/client');
 // Internal Imports
 
 
 // Set Constants
-const CAULDRON_PATH = grabPath();
+let CAULDRON_PATH = grabPath();
 
 async function isDownloaded(version, loader) {
     return new Promise(async (resolve) => {
@@ -136,6 +137,107 @@ async function launchMinecraft(sessionID, authData, profileInfo, installOnly) {
     });
 }
 
+async function createMinecraftInstance(sessionID, authData, profileInfo, installOnly) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            CAULDRON_PATH = grabEnginePath();
+            if (!installOnly) {
+                installOnly = false;
+            }
+            let overrides = profileInfo.overrides;
+            // Create Session Folder
+            if (!fs.existsSync(path.join(CAULDRON_PATH, 'sessions'))) {
+                fs.mkdirSync(path.join(CAULDRON_PATH, 'sessions'));
+            }
+            if (!fs.existsSync(path.join(CAULDRON_PATH, 'sessions', sessionID))) {
+                fs.mkdirSync(path.join(CAULDRON_PATH, 'sessions', sessionID));
+            }
+
+
+            if (!overrides) {
+                overrides = {};
+            }
+            if (!overrides['game']) {
+                overrides['game'] = {};
+            }
+            if (!overrides['jvm']) {
+                overrides['jvm'] = {};
+            }
+
+            // Set Required Overrides (Launcher Specific)
+
+            overrides['jvm']['launcher_name'] = "CauldronMC";
+            overrides['game']['version_type'] = "CauldronMC";
+            overrides['game']['game_directory'] = path.join(CAULDRON_PATH, 'sessions', sessionID);
+
+            // Apply Custom Arguments (custom_args.json)
+            if (fs.existsSync(path.join(grabPath(), 'custom_args.json'))) {
+                let customArgsFile = JSON.parse(fs.readFileSync(path.join(grabPath(), 'custom_args.json')).toString());
+                if (customArgsFile.jvm) {
+                    overrides['jvm'] = { ...overrides['jvm'], ...customArgsFile.jvm };
+                }
+                if (customArgsFile.game) {
+                    overrides['game'] = { ...overrides['game'], ...customArgsFile.game };
+                }
+            }
+
+
+        
+            if (profileInfo.isModded) {
+                let modpackPath = path.join(CAULDRON_PATH, 'modpacks', `${sessionID}_pack`, 'mods');
+               
+                if (fs.existsSync(modpackPath)) {
+                    if (fs.existsSync(path.join(CAULDRON_PATH, 'sessions', sessionID, 'mods'))) {
+                        let modList = await getModList(path.join(modpackPath, '../'));
+                        let unfilteredModList = fs.readdirSync(path.join(CAULDRON_PATH, 'sessions', sessionID, 'mods'));
+                        let filteredModList = [];
+
+                        for (let idx in unfilteredModList) {
+                            if (unfilteredModList[idx].includes('.jar')) {
+                                filteredModList.push(unfilteredModList[idx]);
+                            }
+                        }
+                        if (!compareArrays(modList, filteredModList)) {
+                            
+                            await installMods(sessionID);
+                        }
+                    } else {
+                        await installMods(sessionID);
+                    }
+                } else {
+                    if (fs.existsSync(path.join(modpackPath, '../'))) {
+                        await installMods(sessionID);
+                    } else {
+                        reject('Modpack Declared But not found');
+                    }
+                }
+            }
+            let installLock = true
+            if (installOnly && !installLock && (await isDownloaded(profileInfo.options.version, profileInfo.options.loader))) {
+                cauldronLogger.debug('Install Only Skipped')
+                resolve('restored-from-offline')
+            } else {
+                console.log(profileInfo)
+                console.log(authData)
+                //process.exit(0)
+                const launchMinecraftSession = await startGame(profileInfo.options.version,profileInfo.options.loaderInfo,authData,profileInfo.overrides);
+                //const launchMinecraftSession = await startGame(profileInfo.options.version, )
+              /*   if (installOnly && !(await isDownloaded(profileInfo.options.version, profileInfo.options.loader))) {
+                    let currentOfflineVersions = JSON.parse(fs.readFileSync(path.join(grabPath(), 'offline-versions.json')).toString());
+                    currentOfflineVersions['versions'][`${profileInfo.options.version}-${profileInfo.options.loader}`] = {
+                        installed: true,
+                        lastChecked: new Date().getTime()
+                    };
+                    fs.writeFileSync(path.join(grabPath(), 'offline-versions.json'), JSON.stringify(currentOfflineVersions));
+                } */
+                resolve(launchMinecraftSession);
+            }
+        } catch (e) {
+            reject(e);
+        }
+    });
+}
+
 function compareArrays(arr1, arr2) {
     // Check if the arrays have the same length
     if (arr1.length !== arr2.length) {
@@ -186,4 +288,4 @@ async function installMods(packID) {
 }
 
 
-module.exports = { launchMinecraft };
+module.exports = { launchMinecraft, createMinecraftInstance };
