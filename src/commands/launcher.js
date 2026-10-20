@@ -2,7 +2,7 @@
 const { Command } = require('commander');
 
 const { cauldronLogger, startMCListening } = require('@jackcooperdev/cauldronengine/logger');
-const { launchMinecraft } = require("../libs/launcher.js");
+const { launchMinecraft, createMinecraftInstance } = require("../libs/launcher.js");
 const path = require("path");
 const { getEnginePath } = require("../utils/enviromentManager.js");
 const fs = require("fs");
@@ -12,17 +12,16 @@ const { createOutput } = require("../utils/output");
 const { jwtDecode } = require("jwt-decode");
 const { rimraf } = require("rimraf");
 const { verifyInstallation } = require('@jackcooperdev/cauldronengine/queue');
-const { startServer } = require('@jackcooperdev/cauldronengine/launcher');
+//const { startServer } = require('@jackcooperdev/cauldronengine/launcher');
 let GENERIC_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
 module.exports = {
-    start: new Command('start')
+    start_new: new Command('start')
         .description('Launch a Minecraft Instance')
         .option('-v, --mc_version <type>', 'Minecraft Version')
         .option('-l, --mc_loader <type>', 'Minecraft Loader', 'vanilla')
         .option('-x, --mc_loader_version <type>', 'Minecraft Loader Version', undefined)
         .option('-n --name <name>', 'Instance Name')
         .option('-m, --account <token>', 'Minecraft Access Token')
-        .option('-u --username <username>', 'Minecraft Username')
         .option('-i, --dry', "Install but dont launch", false)
         .option('-d, --debug', 'output extra debugging information')
         .option('-g, --headless', 'Skip Interactive Elements')
@@ -30,42 +29,40 @@ module.exports = {
         .option('--modrinth_mods <mods>', 'CSV of modrinth slugs')
         .option('-c --cache', 'Use Cache For Modpack')
         .option('-o --overrides <overrides>', 'Overrides When Launching (CSV) e.g ram=2,ram_low=1')
-        /* .option('--curseforge_mods <mods>', 'CSV of curseforge slugs')
-        .option('--modrinth_mods <mods>', 'CSV of modrinth slugs')
-        .option('--curseforge <base64>', 'Base64 String of curseforge modpack (check docs)')
-        .option('--modrinth <base64>', 'Base64 String of modrinth modpack (check docs)') */
 
         .action(async (options) => {
             try {
-                let { mc_loader, mc_version, name, curseforge_mods, modrinth_mods, cache, overrides, account } = options
+                let { mc_loader, mc_version, mc_loader_version, name, curseforge_mods, modrinth_mods, cache, overrides, account } = options
                 let headless = options.headless;
                 let offlineMode = false;
                 const out = createOutput(headless);
                 if (options.debug) {
                     cauldronLogger.level = 4;
                 }
-                let mc_account;
+                let mc_account = { demo: true, token: "", accountData: {} };
                 if (!account) {
                     account = GENERIC_JWT;
                     offlineMode = true;
-                }
-
-                if (!mc_account) {
-                    mc_account = account
+                } else {
+                    mc_account.token = account;
                 }
                 let accountData;
-                try {
 
-                    accountData = jwtDecode(mc_account);
-                } catch (e) {
-                    console.error(e);
-                    if (!headless) {
-                        cauldronLogger.error('No Account Provided')
-                    } else {
-                        out.error('no_account')
+                if (!offlineMode) {
+                    try {
+                        accountData = jwtDecode(mc_account.token);
+                        mc_account.accountData = jwtDecode(mc_account.token);
+                    } catch (e) {
+                        console.error(e);
+                        if (!headless) {
+                            cauldronLogger.error('Invalid Token')
+                        } else {
+                            out.error('no_account')
+                        }
+                        process.exit(1);
                     }
-                    process.exit(1);
                 }
+
 
                 let acceptedOverrides = {
                     'ram': 'jvm',
@@ -88,22 +85,22 @@ module.exports = {
                 }
 
 
-                let username = overrides.game.username || 'Notch';
+                let username = 'Demo';
                 if (!offlineMode) {
-                    cauldronLogger.debug(`Account Verified as: ${accountData.pfd[0].name}`);
+                    try {
+                        cauldronLogger.debug(`Account Verified as: ${mc_account.accountData.pfd[0].name}`);
+                        mc_account.demo = false;
+                    } catch (e) {
+                        if (!headless) {
+                            cauldronLogger.error('Invalid Token')
+                        } else {
+                            out.error('no_account')
+                        }
+                        process.exit(1);
+                    }
                     username = accountData.pfd[0].name
                 } else {
-                    // Get UUID
-                    let config = {
-                        method: 'get',
-                        url: `https://api.mojang.com/users/profiles/minecraft/${username}`
-                    }
-                    try {
-                        let playersUUID = (await axios(config)).data.id
-                        overrides.game['uuid'] = playersUUID
-                    } catch (e) {
-                        cauldronLogger.error('Could Not Retrieve UUID')
-                    }
+                    cauldronLogger.error('No Valid MC Auth Token Provided Locking to Demo Mode');
                 }
                 cauldronLogger.info(`Starting Minecraft Version: ${options.mc_version} (${options.mc_loader}) with account ${username}`);
 
@@ -112,8 +109,10 @@ module.exports = {
                 let profileInfo = {
                     options: {
                         version: options.mc_version,
-                        loader: options.mc_loader,
-                        lVersion: options.mc_loader_version,
+                        loaderInfo: {
+                            type: mc_loader,
+                            version: mc_loader_version
+                        }
                     },
                     overrides: overrides
                 }
@@ -166,8 +165,8 @@ module.exports = {
 
                         let info = await installModpack(name);
                         profileInfo.options.version = info.versions.minecraft;
-                        profileInfo.options.loader = info.versions.loader.type;
-                        profileInfo.options.lVersion = info.versions.loader.version;
+                        profileInfo.options.loaderInfo.type = info.versions.loader.type;
+                        profileInfo.options.loaderInfo.version = info.versions.loader.version
                     };
                 };
 
@@ -179,14 +178,13 @@ module.exports = {
                     }
                     process.exit(1)
                 }
-
-                const startLaunch = await launchMinecraft(sessionName, mc_account, profileInfo, options.dry);
+                const startLaunch = await createMinecraftInstance(sessionName, mc_account, profileInfo, options.dry);
                 cauldronLogger.info(`Started Session: ${startLaunch}`)
                 process.stdin.unref();
                 if (!options.dry && !options.headless && startLaunch !== 'DETACH') {
                     await startMCListening();
                 }
-                //process.exit(0)
+                process.exit(0)
             } catch (error) {
                 cauldronLogger.error(error);
                 process.exit(1);
@@ -194,5 +192,4 @@ module.exports = {
 
 
         }),
-
 };

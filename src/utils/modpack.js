@@ -22,7 +22,6 @@ async function createModpack(type, payload) {
                     resolve(true);
                     break;
                 case 'premade':
-
                     let { url, sha1, name } = payload;
                     let queue = [{
                         "origin": url,
