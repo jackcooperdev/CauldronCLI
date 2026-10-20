@@ -21,36 +21,6 @@ async function initializeCauldron() {
                 fs.mkdirSync(CAULDRON_PATH);
             }
 
-            if (!fs.existsSync(path.join(CAULDRON_PATH, 'config'))) {
-                fs.mkdirSync(path.join(CAULDRON_PATH, 'config'));
-            }
-
-            if (!fs.existsSync(path.join(CAULDRON_PATH, "config/assets_installed.json"))) {
-                fs.writeFileSync(path.join(CAULDRON_PATH, "config/assets_installed.json"), "{}",);
-            }
-
-            if (!fs.existsSync(path.join(CAULDRON_PATH, "config/posts_completed.json"))) {
-                fs.writeFileSync(path.join(CAULDRON_PATH, "config/posts_completed.json"), "{}",);
-            }
-
-
-            // Check for jvm file
-            if (!fs.existsSync(path.join(CAULDRON_PATH, "config/jvm_installed.json"))) {
-                fs.writeFileSync(path.join(CAULDRON_PATH, "config/jvm_installed.json"), "{}");
-            }
-
-            // Check for a library installations file
-            if (!fs.existsSync(path.join(CAULDRON_PATH, "config/libs_installed.json"))) {
-                fs.writeFileSync(path.join(CAULDRON_PATH, "config/libs_installed.json"), "{}");
-            }
-
-            if (!fs.existsSync(path.join(CAULDRON_PATH, 'config/offline-versions.json'))) {
-                let offlineTemplate = {
-                    "versions": {},
-                    "configs": {}
-                }
-                fs.writeFileSync(path.join(CAULDRON_PATH, 'config/offline-versions.json'), JSON.stringify(offlineTemplate));
-            }
             if (!fs.existsSync(path.join(CAULDRON_PATH, 'modpacks'))) {
                 fs.mkdirSync(path.join(CAULDRON_PATH, 'modpacks'));
             }

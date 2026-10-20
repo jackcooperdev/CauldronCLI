@@ -21,9 +21,8 @@ module.exports = {
         .action(async (options) => {
             let headless = options.headless;
             const out = createOutput(headless);
-            let { mc_loader, mc_version, name, curseforge_mods, modrinth_mods } = options
+            let { mc_loader, mc_version,mc_loader_version,name, curseforge_mods, modrinth_mods } = options
             let mods = [];
-
 
             if (curseforge_mods) {
                 let temp = curseforge_mods.split(",");
@@ -46,6 +45,7 @@ module.exports = {
             let packPayload = {
                 name,
                 loader: mc_loader,
+                loaderVersion:mc_loader_version,
                 minecraftVersion: mc_version,
                 author: 'cmm',
                 mods: mods
