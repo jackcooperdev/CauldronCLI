@@ -59,12 +59,15 @@ async function listInstalledVersions() {
             let expectedVersionCE = path.join(temp, 'version.ce');
             if (fs.existsSync(expectedVersionCE)) {
 
-                
-                console.log(expectedVersionCE)
+                let maniData = await grabCE(expectedVersionCE);
+                if (maniData) {
+                    versionData.loader = maniData.loader;
+                    versionData.version = maniData.vanillaVersion,
+                        versionData.loaderVersion = maniData.lv;
+                    versions.push(versionData)
+                }
             }
         }
-        console.log(versionFolders)
-        console.log('hello')
     }
     return versions
 }

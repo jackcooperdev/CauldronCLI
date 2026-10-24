@@ -22,7 +22,23 @@ module.exports = {
             process.exit(0);
 
         }),
+    list_installed: new Command('list')
+        .description('List Installed Versions')
+        .option('-g, --headless', 'Skip Interactive Elements')
+        .action(async (options) => {
+            let headless = options.headless;
+            try {
+                const out = createOutput(headless);
 
+                let versions = await listInstalledVersions();
+                out.success({ 'message': 'OK', versions })
+
+            } catch (e) {
+                console.log(e)
+            }
+            process.exit(0);
+
+        }),
 
     test: new Command('test')
         .description('Test Command To test features')
@@ -33,7 +49,6 @@ module.exports = {
             try {
                 const out = createOutput(headless);
 
-                await listInstalledVersions();
                 out.success({ 'message': 'OK' })
 
             } catch (e) {
