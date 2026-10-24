@@ -13,7 +13,7 @@ const { grabPath } = require('@jackcooperdev/cauldronengine/compat');
 //const { launchGame } = require('@jackcooperdev/cauldronengine/launcher');
 const { whatIsThis, checkManifest } = require('@jackcooperdev/cauldronengine/manifest');
 const { cauldronLogger } = require("@jackcooperdev/cauldronengine/logger");
-const { startGame } = require('@jackcooperdev/cauldronengine/client');
+const { startGame, installGame } = require('@jackcooperdev/cauldronengine/client');
 // Internal Imports
 
 
@@ -82,12 +82,10 @@ async function createMinecraftInstance(sessionID, authData, profileInfo, install
                 if (customArgsFile.game) {
                     overrides['game'] = { ...overrides['game'], ...customArgsFile.game };
                 }
-            }
-
-            let installLock = true
-            if (installOnly && !installLock && (await isDownloaded(profileInfo.options.version, profileInfo.options.loader))) {
-                cauldronLogger.debug('Install Only Skipped')
-                resolve('restored-from-offline')
+            };
+            if (installOnly) {
+                await installGame(profileInfo.options.version,profileInfo.options.loaderInfo)
+                resolve('installed')
             } else {
                 //process.exit(0)
                 const launchMinecraftSession = await startGame(profileInfo.options.version,profileInfo.options.loaderInfo,authData,profileInfo.overrides);

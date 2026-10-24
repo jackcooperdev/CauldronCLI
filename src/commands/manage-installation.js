@@ -1,7 +1,7 @@
 // noinspection JSUnresolvedReference
 
 const { Command } = require('commander');
-const { resetCauldron, initializeCauldron } = require('../libs/system.js');
+const { resetCauldron, initializeCauldron, listInstalledVersions } = require('../libs/system.js');
 const { createOutput } = require("../utils/output");
 const { startGame, installGame } = require('@jackcooperdev/cauldronengine/client');
 module.exports = {
@@ -22,7 +22,23 @@ module.exports = {
             process.exit(0);
 
         }),
+    list_installed: new Command('list')
+        .description('List Installed Versions')
+        .option('-g, --headless', 'Skip Interactive Elements')
+        .action(async (options) => {
+            let headless = options.headless;
+            try {
+                const out = createOutput(headless);
 
+                let versions = await listInstalledVersions();
+                out.success({ 'message': 'OK', versions })
+
+            } catch (e) {
+                console.log(e)
+            }
+            process.exit(0);
+
+        }),
 
     test: new Command('test')
         .description('Test Command To test features')
@@ -31,9 +47,8 @@ module.exports = {
             let headless = options.headless;
             console.log('how much dedatted wam do i need for my server?')
             try {
-                //await installGame('1.7.10', { type: 'vanilla' });
-                //await startGame('release',{type:'vanilla'},{demo:true});
                 const out = createOutput(headless);
+
                 out.success({ 'message': 'OK' })
 
             } catch (e) {

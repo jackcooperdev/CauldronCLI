@@ -179,9 +179,9 @@ module.exports = {
                     process.exit(1)
                 }
                 const startLaunch = await createMinecraftInstance(sessionName, mc_account, profileInfo, options.dry);
-                cauldronLogger.info(`Started Session: ${startLaunch}`)
                 process.stdin.unref();
                 if (!options.dry && !options.headless && startLaunch !== 'DETACH') {
+                    cauldronLogger.info(`Started Session: ${startLaunch}`)
                     await startMCListening();
                 }
                 process.exit(0)
