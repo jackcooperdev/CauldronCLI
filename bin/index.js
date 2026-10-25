@@ -6,8 +6,10 @@ const program = new Command();
 const command2 = require('../src/commands/manage-installation.js');
 const command3 = require('../src/commands/launcher.js');
 const command4 = require('../src/commands/modpack.js');
+const command5 = require('../src/commands/update.js');
 const pkg = require('../package.json');
 const { initializeCauldron } = require("../src/libs/system");
+const { autoUpdate, cleanupUpdate } = require("../src/libs/updater");
 
 async function loadCommands() {
     // Add commands from each imported module
@@ -27,6 +29,11 @@ async function loadCommands() {
             program.addCommand(command4[commandName]);
         }
     }
+    for (const commandName in command5) {
+        if (command5[commandName] instanceof Command) {
+            program.addCommand(command5[commandName]);
+        }
+    }
 }
 
 async function main() {
@@ -37,9 +44,19 @@ async function main() {
     //.option('-d, --debug', 'output extra debugging information')
 
     await initializeCauldron()
+    cleanupUpdate()
     await loadCommands(); // Load other commands
 
-    program.parse(process.argv);
+    // Check for updates before interactive commands. Headless mode is skipped so apps
+    // controlling the CLI (e.g. the dashboard) stay on the version they ship
+    program.hook('preAction', async (thisCommand, actionCommand) => {
+        const skip = ['update', 'uninstall', 'reset'];
+        if (!actionCommand.opts().headless && !skip.includes(actionCommand.name())) {
+            await autoUpdate();
+        }
+    });
+
+    await program.parseAsync(process.argv);
 
 }
 if (process.platform === "win32") {

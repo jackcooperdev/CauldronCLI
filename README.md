@@ -17,6 +17,43 @@ project follows the license guidelines.
 
 ## Setup
 
+### Installer (Recommended)
+
+The installer downloads the latest release, adds it to your `PATH` and keeps it [up to date](#updating).
+
+macOS / Linux:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jackcooperdev/CauldronCLI/master/install.sh | sh
+```
+
+Windows (PowerShell):
+
+```powershell
+irm https://raw.githubusercontent.com/jackcooperdev/CauldronCLI/master/install.ps1 | iex
+```
+
+Restart your terminal, then check that it works:
+
+```bash
+cauldroncli --version
+```
+
+| System        | Installed to                         | Added to `PATH` in                                     |
+|---------------|--------------------------------------|--------------------------------------------------------|
+| macOS / Linux | `~/.cauldroncli/bin/cauldroncli`     | `~/.zshrc`, `~/.bashrc` (`~/.bash_profile` on macOS), fish `conf.d` or `~/.profile` |
+| Windows       | `%LOCALAPPDATA%\CauldronCLI\bin`      | User `PATH`                                            |
+
+Installer options:
+
++ Install a specific version: `sh -s -- v0.7.1` on macOS / Linux, or set `$env:CAULDRONCLI_VERSION = "v0.7.1"`
+  before running the Windows installer
++ Set `CAULDRONCLI_INSTALL` to install to a different folder
+
+Running the installer again reinstalls the latest version.
+
+### Manual
+
 Download the binary for your system from the [releases page](https://github.com/jackcooperdev/CauldronCLI/releases).
 
 | System                | File                                    |
@@ -34,11 +71,18 @@ On Linux and macOS, make the file executable:
 chmod +x cauldroncli
 ```
 
-Check that it works:
+### Updating
 
-```bash
-cauldroncli --version
-```
+Release binaries check for a new version once a day and install it automatically. The update is used from the next
+command.
+
++ Run [`cauldroncli update`](https://docs.cauldronmc.com/cli/commands/installation#update) to update straight away
++ Set `AUTO_UPDATE` to `false` in [cauldroncli_admin.json](#cauldroncli_adminjson) to be told about new versions
+  without installing them
++ Set the `CAULDRONCLI_NO_UPDATE` environment variable to turn off update checks
+
+Update checks are skipped in [headless mode](#headless-mode) and for the `update`, `reset` and `uninstall` commands.
+If the check fails (for example when [offline](#offline-use)), the command runs as normal.
 
 ## Quick Start
 
@@ -62,6 +106,7 @@ cauldroncli start -v 1.20.1 -l forge -m <minecraft_access_token>
 | [`list`](https://docs.cauldronmc.com/cli/commands/installation#list)                  | List installed versions             |
 | [`reset`](https://docs.cauldronmc.com/cli/commands/installation#reset)                | Reset the Cauldron folder           |
 | [`uninstall`](https://docs.cauldronmc.com/cli/commands/installation#uninstall)        | Remove the Cauldron folder          |
+| [`update`](https://docs.cauldronmc.com/cli/commands/installation#update)              | Update CauldronCLI                  |
 
 Run `cauldroncli help <command>` to see the options for a command.
 
@@ -72,7 +117,7 @@ Most commands accept the following options.
 + `-g` `--headless`: Skip interactive elements and output JSON. See [Headless Mode](#headless-mode)
 + `-d` `--debug`: Output extra debugging information
 
-> The `list` and `uninstall` commands use `-n` for `--headless`.
+> The `uninstall` command uses `-n` for `--headless`.
 
 ## Headless Mode
 
@@ -111,13 +156,16 @@ Created in your home folder on first run.
 {
   "FORCE_MODE": false,
   "CAULDRON_PATH": "/home/user/.cauldron",
-  "RESOURCE_SERVER": "https://resources.cauldronmc.com"
+  "RESOURCE_SERVER": "https://resources.cauldronmc.com",
+  "AUTO_UPDATE": true
 }
 ```
 
 + `CAULDRON_PATH`: Where Cauldron stores games, modpacks and sessions.
   See [grabPath](https://docs.cauldronmc.com/engine/tools/compat#grabpath) for the default
 + `RESOURCE_SERVER`: Server used to fetch version and loader information
++ `AUTO_UPDATE`: Install new versions automatically. When `false`, a message is shown instead. See
+  [Updating](#updating) (Default: `true`)
 
 > Run `cauldroncli uninstall` before changing `CAULDRON_PATH` so the old folder is removed.
 

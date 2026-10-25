@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Installers that download the latest release and add it to `PATH`:
+  `install.sh` (macOS / Linux) and `install.ps1` (Windows)
+- `update` command to update CauldronCLI to the latest release (`--check` only checks)
+- Automatic updates. Release binaries check for a new version once a day and install it before running a command.
+  Skipped in headless mode, and failures (such as being offline) are ignored
+- `AUTO_UPDATE` option in `cauldroncli_admin.json`. Set it to `false` to be told about updates instead of
+  installing them
+- `CAULDRONCLI_NO_UPDATE` environment variable to turn off update checks
+
 ## [v0.7.1] - 2026-10-25
 
 ### Changed

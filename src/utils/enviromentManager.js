@@ -13,11 +13,14 @@ let FORCE_MODE = false;
 
 let CAULDRON_PATH = grabPath();
 
+let AUTO_UPDATE = true;
+
 // Check for Override File
 let defaultFile = {
     FORCE_MODE: FORCE_MODE,
     CAULDRON_PATH: CAULDRON_PATH,
     RESOURCE_SERVER:RESOURCE_SERVER,
+    AUTO_UPDATE: AUTO_UPDATE,
 };
 
 
@@ -31,6 +34,7 @@ if (!fs.existsSync(path.join(os.homedir(), 'cauldroncli_admin.json'))) {
     FORCE_MODE = admin_file.FORCE_MODE;
     CAULDRON_PATH = admin_file.CAULDRON_PATH;
     RESOURCE_SERVER = admin_file.RESOURCE_SERVER;
+    AUTO_UPDATE = admin_file.AUTO_UPDATE ?? AUTO_UPDATE;
     process.env.CAULDRON_PATH = admin_file.CAULDRON_PATH;
     process.env.RESOURCE_SERVER = admin_file.RESOURCE_SERVER;
 }
@@ -54,5 +58,9 @@ function getResourcePath() {
     return RESOURCE_SERVER
 }
 
+function getAutoUpdate() {
+    return AUTO_UPDATE
+}
 
-module.exports = {grabPackwizLocation, getEnginePath, getResourcePath};
+
+module.exports = {grabPackwizLocation, getEnginePath, getResourcePath, getAutoUpdate};
