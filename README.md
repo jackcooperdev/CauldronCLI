@@ -1,6 +1,6 @@
 # Cauldron CLI
 
-> This Documentation is correct for version [0.7.0](https://github.com/jackcooperdev/CauldronCLI/releases/tag/v0.7.0)
+> This Documentation is correct for version [0.7.1](https://github.com/jackcooperdev/CauldronCLI/releases/tag/v0.7.1)
 > of CauldronCLI
 
 ## What does this do?
