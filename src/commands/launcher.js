@@ -10,12 +10,11 @@ const axios = require('axios')
 const { createModpack, createCurseforgePack, createModrinthPack, installModpack } = require("../utils/modpack.js");
 const { createOutput } = require("../utils/output");
 const { jwtDecode } = require("jwt-decode");
-const { rimraf } = require("rimraf");
-const { verifyInstallation } = require('@jackcooperdev/cauldronengine/queue');
-//const { startServer } = require('@jackcooperdev/cauldronengine/launcher');
-let GENERIC_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
+
+
+
 module.exports = {
-    start_new: new Command('start')
+    start: new Command('start')
         .description('Launch a Minecraft Instance')
         .option('-v, --mc_version <type>', 'Minecraft Version')
         .option('-l, --mc_loader <type>', 'Minecraft Loader', 'vanilla')
@@ -32,7 +31,7 @@ module.exports = {
 
         .action(async (options) => {
             try {
-                let { mc_loader, mc_version, mc_loader_version, name, curseforge_mods, modrinth_mods, cache, overrides, account } = options
+                let { mc_loader, mc_version, mc_loader_version, name, curseforge_mods, modrinth_mods, cache, overrides, account,dry } = options
                 let headless = options.headless;
                 let offlineMode = false;
                 const out = createOutput(headless);
@@ -40,8 +39,8 @@ module.exports = {
                     cauldronLogger.level = 4;
                 }
                 let mc_account = { demo: true, token: "", accountData: {} };
+
                 if (!account) {
-                    account = GENERIC_JWT;
                     offlineMode = true;
                 } else {
                     mc_account.token = account;
@@ -100,12 +99,9 @@ module.exports = {
                     }
                     username = accountData.pfd[0].name
                 } else {
-                    cauldronLogger.error('No Valid MC Auth Token Provided Locking to Demo Mode');
+                    cauldronLogger.warn('No Valid MC Auth Token Provided Locking to Demo Mode');
                 }
-                cauldronLogger.info(`Starting Minecraft Version: ${options.mc_version} (${options.mc_loader}) with account ${username}`);
-
-
-
+              
                 let profileInfo = {
                     options: {
                         version: options.mc_version,
@@ -178,6 +174,8 @@ module.exports = {
                     }
                     process.exit(1)
                 }
+                
+                cauldronLogger.info(`Starting Minecraft Version: ${profileInfo.options.version} (${profileInfo.options.loaderInfo.type}) with account ${username}`);
                 const startLaunch = await createMinecraftInstance(sessionName, mc_account, profileInfo, options.dry);
                 process.stdin.unref();
                 if (!options.dry && !options.headless && startLaunch !== 'DETACH') {

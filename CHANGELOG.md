@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.8.0] - 2026-10-26
+
 ### Added
 
 - Installers that download the latest release and add it to `PATH`:
@@ -17,6 +19,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `AUTO_UPDATE` option in `cauldroncli_admin.json`. Set it to `false` to be told about updates instead of
   installing them
 - `CAULDRONCLI_NO_UPDATE` environment variable to turn off update checks
+
+### Changed
+
+- Updated CauldronEngine to 0.15.0. Installing a version now shows a progress bar for each type of file (Client,
+  Libraries, Java, Assets) with how many files have been checked and downloaded. Not shown in headless mode
+- Launching without `--account` logs the demo mode message as a warning instead of an error
+
+### Fixed
+
+- `start` with a saved modpack logging `Starting Minecraft Version: undefined`. The log now shows the modpack's
+  Minecraft version and loader
+
+### Removed
+
+- Unused `nssm.exe` and unused internal code
 
 ## [v0.7.1] - 2026-10-25
 
@@ -284,7 +301,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bug meaning credentials weren't being updated in time for API Manager to find them.
 
 
-[unreleased]: https://github.com/jackcooperdev/CauldronCLI/compare/v0.7.1...HEAD
+[unreleased]: https://github.com/jackcooperdev/CauldronCLI/compare/v0.8.0...HEAD
+[v0.8.0]: https://github.com/jackcooperdev/CauldronCLI/compare/v0.7.1...v0.8.0
 [v0.7.1]: https://github.com/jackcooperdev/CauldronCLI/compare/v0.7.0...v0.7.1
 [v0.7.0]: https://github.com/jackcooperdev/CauldronCLI/compare/v0.6.0...v0.7.0
 [v0.6.0]: https://github.com/jackcooperdev/CauldronCLI/compare/v0.5.5...v0.6.0
