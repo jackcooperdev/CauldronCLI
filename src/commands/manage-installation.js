@@ -3,7 +3,6 @@
 const { Command } = require('commander');
 const { resetCauldron, initializeCauldron, listInstalledVersions } = require('../libs/system.js');
 const { createOutput } = require("../utils/output");
-const { startGame, installGame } = require('@jackcooperdev/cauldronengine/client');
 module.exports = {
     reset: new Command('reset')
         .description('Reset Cauldron Installation')
@@ -48,7 +47,6 @@ module.exports = {
             console.log('how much dedatted wam do i need for my server?')
             try {
                 const out = createOutput(headless);
-
                 out.success({ 'message': 'OK' })
 
             } catch (e) {
