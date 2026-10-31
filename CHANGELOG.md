@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.8.1] - 2026-10-31
+
+### Changed
+
+- Updated CauldronEngine to 0.16.0. Versions without a log4j config (1.5.2 and older) now show their game log in the
+  terminal when launched, like newer versions
+- Updated axios to 1.21.0 and pkg to 6.24.0
+
+### Fixed
+
+- Launching on Windows (from CauldronEngine 0.16.0)
+- Launching on Linux, which tried to run `javaw` instead of `java` (from CauldronEngine 0.16.0)
+
 ## [v0.8.0] - 2026-10-26
 
 ### Added
@@ -302,6 +315,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [unreleased]: https://github.com/jackcooperdev/CauldronCLI/compare/v0.8.0...HEAD
+[v0.8.1]: https://github.com/jackcooperdev/CauldronCLI/compare/v0.8.0...v0.8.1
 [v0.8.0]: https://github.com/jackcooperdev/CauldronCLI/compare/v0.7.1...v0.8.0
 [v0.7.1]: https://github.com/jackcooperdev/CauldronCLI/compare/v0.7.0...v0.7.1
 [v0.7.0]: https://github.com/jackcooperdev/CauldronCLI/compare/v0.6.0...v0.7.0
